@@ -24,8 +24,8 @@ export function SelectionSheet({ open, title, value, options, onChange, onClose,
 
   if (!open) return null;
   return createPortal(
-    <div className="selection-sheet-backdrop fixed inset-0 z-[120] flex items-end justify-center p-3 backdrop-blur-sm sm:items-center" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
-      <section role="dialog" aria-modal="true" aria-label={title} className="selection-sheet w-full max-w-lg overflow-hidden rounded-[2rem] border shadow-2xl">
+    <div className="selection-sheet-backdrop fixed inset-0 z-120 flex items-end justify-center p-3 backdrop-blur-sm sm:items-center" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
+      <section role="dialog" aria-modal="true" aria-label={title} className="selection-sheet w-full max-w-lg overflow-hidden rounded-4xl border shadow-2xl">
         <header className="flex items-center justify-between border-b px-4 py-4">
           <h2 className="text-base font-bold">{title}</h2>
           <button type="button" onClick={onClose} aria-label={`Close ${title}`} className="rounded-full p-2 text-neutral-400 hover:bg-neutral-800"><X size={20}/></button>
