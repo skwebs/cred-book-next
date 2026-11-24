@@ -1,0 +1,20 @@
+import type { Payment, Statement } from './view-types';
+type Props = { [key: string]: any; payments: Payment[]; deletedPayments: Payment[]; statements: Statement[] };
+
+export default function PaymentsView(props: Props) {
+  const { Empty, Metric, ModalLink, Plus, RefreshCw, RotateCcw, Trash2, day, deletePaymentOptimistic, restorePaymentOptimistic, deletedPayments, money, payments, statements } = props;
+  return (
+    <>
+      <div className="mb-4 grid grid-cols-2 gap-2"><Metric label="Outstanding statements" value={money(statements.reduce((n,s)=>n+s.outstanding_minor,0))} tone="amber"/><Metric label="Payments recorded" value={money(payments.reduce((n,p)=>n+p.amount_minor,0))} tone="green"/></div>
+      <div className="mb-3 flex items-center justify-between"><h2 className="font-bold">Payment history</h2><ModalLink to="/payments/new" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white"><Plus size={16}/> Record payment</ModalLink></div>
+      {payments.length===0?<Empty title="No bill payments yet" detail="Record a payment to reduce outstanding statement dues."/>:<div className="space-y-2">{payments.map(p=><div key={p.id} className="flex items-center justify-between gap-3 rounded-3xl border border-neutral-800 bg-neutral-900 p-4">
+        <ModalLink to={`/payments/${p.id}`} className="min-w-0 flex-1 text-left"><div className="truncate text-sm font-semibold">{p.card_name}</div><div className="mt-1 text-xs text-neutral-500">{day(p.paid_at)}{p.reference?` · ${p.reference}`:''}</div>{p.pending?<div className="mt-1 flex items-center gap-1 text-xs text-violet-300"><RefreshCw size={12} className="animate-spin"/> Syncing payment and allocations…</div>:p.unallocated_minor>0&&<div className="mt-1 text-xs text-amber-300">Unallocated: {money(p.unallocated_minor)}</div>}</ModalLink>
+        <div className="flex items-center gap-2"><span className="font-bold">{money(p.amount_minor)}</span><button aria-label="Move payment to deleted payments" title="Move to deleted" onClick={()=>{if(!p.pending&&confirm('Move this payment to Deleted Payments? Allocations will be reversed and outstanding bills recalculated.'))void deletePaymentOptimistic(p)}} disabled={p.pending} className="rounded-xl p-2 text-neutral-500 hover:bg-red-950 hover:text-red-300"><Trash2 size={16}/></button></div>
+      </div>)}</div>}
+      <section className="mt-8 rounded-3xl border border-neutral-800 bg-neutral-900/60 p-4">
+        <div className="flex items-center justify-between gap-2"><div><h3 className="font-bold">Deleted Payments</h3><p className="mt-1 text-xs text-neutral-500">Archived payments are excluded from bill calculations until restored.</p></div><span className="rounded-full bg-neutral-800 px-2.5 py-1 text-xs font-semibold text-neutral-300">{deletedPayments.length}</span></div>
+        {deletedPayments.length===0?<p className="mt-4 text-sm text-neutral-500">No deleted payments.</p>:<div className="mt-3 space-y-2">{deletedPayments.map(p=><div key={p.id} className="rounded-2xl border border-neutral-800 bg-neutral-950 p-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="font-semibold">{money(p.amount_minor)}</div><div className="mt-1 text-sm text-neutral-300">{p.card_name}</div><div className="mt-1 text-xs text-neutral-500">Paid {day(p.paid_at)}{p.reference?` · ${p.reference}`:''}</div><div className="mt-1 text-xs text-neutral-500">Deleted {p.deleted_at?day(p.deleted_at):'—'}</div></div><button type="button" onClick={()=>{if(confirm(`Restore this ${money(p.amount_minor)} payment for ${p.card_name}? Its allocations will be recalculated and outstanding bills may decrease.`))void restorePaymentOptimistic(p)}} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border border-violet-500/40 px-3 text-sm font-semibold text-violet-300 hover:bg-violet-500/10"><RotateCcw size={15}/> Restore</button></div></div>)}</div>}
+      </section>
+    </>
+  );
+}
