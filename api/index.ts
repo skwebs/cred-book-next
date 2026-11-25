@@ -160,14 +160,33 @@ async function dashboard(){
   for(const c of active){
     const cy=cycleFor(c,today);
     const cur=minor((await rows('SELECT COALESCE(SUM(amount_minor),0)::bigint n FROM transactions WHERE card_id=$1 AND settlement_date BETWEEN $2 AND $3',[c.id,cy.start,cy.end]))[0].n);
-    const dues=sts.filter(s=>Number(s.card_id)===Number(c.id)).reduce((sum,s)=>sum+minor(s.outstanding_minor),0);
-    activeCards.push({...c,current_minor:cur,dues_minor:dues,cycle_start:cy.start,cycle_end:cy.end});
+    const cardStatements=sts.filter(s=>Number(s.card_id)===Number(c.id));
+    const dues=cardStatements.reduce((sum,s)=>sum+minor(s.outstanding_minor),0);
+    const openStatements=cardStatements.filter(s=>minor(s.outstanding_minor)>0)
+      .sort((a,b)=>String(a.due_date).slice(0,10).localeCompare(String(b.due_date).slice(0,10)));
+    const latestStatement=cardStatements[0];
+    let duesStatus='no_dues';
+    let duesStatusDays=0;
+    if(openStatements.length){
+      const nextDue=openStatements[0];
+      const dueDate=String(nextDue.due_date).slice(0,10);
+      const dayNumber=(value:string)=>Math.floor(Date.parse(`${value}T00:00:00Z`)/86400000);
+      const difference=dayNumber(dueDate)-dayNumber(today);
+      if(minor(nextDue.paid_minor)>0){
+        duesStatus='partially_paid';
+      }else if(difference<0){
+        duesStatus='overdue';
+        duesStatusDays=Math.abs(difference);
+      }else{
+        duesStatus='due';
+        duesStatusDays=difference;
+      }
+    }else if(latestStatement){
+      duesStatus='fully_paid';
+    }
+    const duesDisplay=dues>0?dues:latestStatement?minor(latestStatement.bill_amount_minor??latestStatement.amount_minor):0;
+    activeCards.push({...c,current_minor:cur,dues_minor:dues,dues_display_minor:duesDisplay,dues_status:duesStatus,dues_status_days:duesStatusDays,cycle_start:cy.start,cycle_end:cy.end});
   }
-
-  // Dashboard accounting uses distinct dates for distinct purposes:
-  // - settlement_date assigns transactions to each card's billing cycle;
-  // - statement_date assigns the generated bill to the reporting month;
-  // - due_date is only the payment deadline and must NOT decide the billed month.
   // X is the full face value of every statement generated in the selected month,
   // including statements whose due date falls in the following month.
   // Y is the outstanding balance of every generated statement; allocations

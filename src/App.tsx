@@ -42,7 +42,12 @@ const DashboardView = lazy(() => import('./legacy-pages/views/DashboardView'));
 const TransactionsView = lazy(() => import('./legacy-pages/views/TransactionsView'));
 const CardView = lazy(() => import('./legacy-pages/views/CardView'));
 const PaymentsView = lazy(() => import('./legacy-pages/views/PaymentsView'));
-const SettingsView = lazy(() => import('./legacy-pages/views/SettingsView'));
+const SettingsOverviewPage = lazy(() => import('./legacy-pages/SettingsSubpages').then(module => ({ default: module.SettingsOverviewPage })));
+const FinancialSettingsPage = lazy(() => import('./legacy-pages/SettingsSubpages').then(module => ({ default: module.FinancialSettingsPage })));
+const DisplaySettingsPage = lazy(() => import('./legacy-pages/SettingsSubpages').then(module => ({ default: module.DisplaySettingsPage })));
+const StorageSettingsPage = lazy(() => import('./legacy-pages/SettingsSubpages').then(module => ({ default: module.StorageSettingsPage })));
+const AccountSettingsPage = lazy(() => import('./legacy-pages/SettingsSubpages').then(module => ({ default: module.AccountSettingsPage })));
+const AboutSettingsPage = lazy(() => import('./legacy-pages/SettingsSubpages').then(module => ({ default: module.AboutSettingsPage })));
 const HelpGuidePage = lazy(() => import('./legacy-pages/HelpGuidePage'));
 
 type RouteLoadingVariant = 'dashboard' | 'cards' | 'transactions' | 'payments' | 'settings' | 'detail' | 'form';
@@ -122,7 +127,7 @@ class RouteErrorBoundary extends React.Component<{ children: React.ReactNode }, 
   }
 }
 
-type Card = { id:number; name:string; bank_name:string; last4:string; credit_limit_minor:number|null; billing_day:number; billing_rule:'end'|'start'; due_days:number; budget_attribution?:'statement'|'due'; active:number; current_minor?:number; dues_minor?:number; cycle_start?:string; cycle_end?:string };
+type Card = { id:number; name:string; bank_name:string; last4:string; credit_limit_minor:number|null; billing_day:number; billing_rule:'end'|'start'; due_days:number; budget_attribution?:'statement'|'due'; active:number; current_minor?:number; dues_minor?:number; dues_display_minor?:number; dues_status?:'overdue'|'due'|'partially_paid'|'fully_paid'|'no_dues'; dues_status_days?:number; cycle_start?:string; cycle_end?:string };
 type Txn = { id:number; card_id:number; card_name:string; particular:string; amount_minor:number; txn_at:string; settlement_date:string; payment_method:'swipe'|'online'|'upi'; upi_app_id:number|null; upi_app_name:string; notes:string; category?:string; tags?:string; has_attachment?:number };
 type Statement = { id:number; card_id:number; card_name:string; bank_name:string; cycle_start:string; cycle_end:string; statement_date:string; due_date:string; amount_minor:number; bill_amount_minor?:number; bank_amount_minor?:number|null; confirmed_at?:string|null; is_locked?:number; paid_minor:number; outstanding_minor:number; status:string };
 type Payment = { id:number; card_id:number; card_name:string; amount_minor:number; paid_at:string; reference:string; notes:string; allocated_minor:number; unallocated_minor:number; pending?:boolean; deleted_at?:string|null; deleted_reason?:string };
@@ -301,6 +306,12 @@ function AppShell() {
     { path: '/upi-apps/:appId/edit', element: <Suspense fallback={<RouteLoading variant="form" />}><UpiAppFormPage /></Suspense> },
     { path: '/upi-apps/:appId', element: <Suspense fallback={<RouteLoading variant="detail" />}><UpiAppDetailsPage /></Suspense> },
     { path: '/settings', element: <Suspense fallback={<RouteLoading variant="settings" />}><SettingsPage /></Suspense> },
+    { path: '/settings/financial', element: <Suspense fallback={<RouteLoading variant="settings" />}><SettingsPage /></Suspense> },
+    { path: '/settings/experience', element: <Suspense fallback={<RouteLoading variant="settings" />}><SettingsPage /></Suspense> },
+    { path: '/settings/storage', element: <Suspense fallback={<RouteLoading variant="settings" />}><SettingsPage /></Suspense> },
+    { path: '/settings/account', element: <Suspense fallback={<RouteLoading variant="settings" />}><SettingsPage /></Suspense> },
+    { path: '/settings/about', element: <Suspense fallback={<RouteLoading variant="settings" />}><SettingsPage /></Suspense> },
+    { path: '/settings/*', element: <Suspense fallback={<RouteLoading variant="settings" />}><SettingsPage /></Suspense> },
     { path: '/help', element: <Suspense fallback={<RouteLoading variant="settings" />}><HelpGuidePage theme={theme} resolvedTheme={resolvedTheme} onToggleTheme={()=>setTheme(resolvedTheme==='dark'?'light':'dark')} /></Suspense> },
     { path: '*', element: <Navigate to="/dashboard" replace /> },
   ], backgroundLocation || location);
@@ -340,7 +351,9 @@ function AppShell() {
   const tab:Tab = (()=>{const path=(backgroundLocation?.pathname || location.pathname).replace(/\/$/,'')||'/'; if(path==='/help'||path.startsWith('/help/'))return null; if(path==='/transactions'||path.startsWith('/transactions/'))return 'transactions'; if(path==='/settings'||path.startsWith('/settings/'))return 'settings'; if(path==='/payments'||path.startsWith('/payments/'))return 'payments'; if(path.startsWith('/cards/'))return 'card'; if(path==='/cards')return 'card'; if(path==='/dashboard'||path==='/')return 'dashboard'; return null;})(); const [cards,setCards]=useState<Card[]>([]); const [txns,setTxns]=useState<Txn[]>([]); const [statements,setStatements]=useState<Statement[]>([]); const [payments,setPayments]=useState<Payment[]>([]); const [deletedPayments,setDeletedPayments]=useState<Payment[]>([]); const [apps,setApps]=useState<AppItem[]>([]); const [dashboard,setDashboard]=useState<any>(null); const [activeCard,setActiveCard]=useState<Card|null>(null); const [cycle,setCycle]=useState('current'); const [cycleSheetOpen,setCycleSheetOpen]=useState(false);
   const [editTxn,setEditTxn]=useState<Txn|null>(null); const [editCard,setEditCard]=useState<Card|null>(null); const [editPayment,setEditPayment]=useState<Payment|null>(null);
   const [filters,setFilters]=useState<Filters>({month:'',card_id:'',method:'',upi_app_id:'',category:'',q:'',from:'',to:''}); const [filtersOpen,setFiltersOpen]=useState(false); const [cardTxnQuery,setCardTxnQuery]=useState('');
- const [summaryExpanded,setSummaryExpanded]=useState(true); const [cardsExpanded,setCardsExpanded]=useState(true); const [busy,setBusy]=useState(false); const mutationLocksRef=useRef<Set<string>>(new Set()); const [overviewIndex,setOverviewIndex]=useState(0); const overviewTrackRef=useRef<HTMLDivElement>(null);
+ const [summaryExpanded,setSummaryExpanded]=useState(true); const [cardsExpanded,setCardsExpanded]=useState(true); const [busy,setBusy]=useState(false); const mutationLocksRef=useRef<Set<string>>(new Set()); const overviewIndexPreferenceExists=useRef(false); const [overviewIndex,setOverviewIndex]=useState<0|1>(()=>{try{const saved=localStorage.getItem('ccm-dashboard-overview-index'); overviewIndexPreferenceExists.current=saved==='0'||saved==='1'; return saved==='1'?1:0}catch{return 0}}); const overviewTrackRef=useRef<HTMLDivElement>(null);
+  useEffect(()=>{try{localStorage.setItem('ccm-dashboard-overview-index',String(overviewIndex))}catch{}},[overviewIndex]);
+  useEffect(()=>{const track=overviewTrackRef.current;if(!track)return;const target=track.clientWidth*overviewIndex;if(Math.abs(track.scrollLeft-target)>2)track.scrollTo({left:target,behavior:'auto'})},[overviewIndex]);
   const [density,setDensity]=useState<'compact'|'comfortable'>(()=>{try{const saved=localStorage.getItem('ccm-density');if(saved==='compact'||saved==='comfortable')return saved;return window.matchMedia('(max-width: 640px)').matches?'compact':'comfortable'}catch{return 'compact'}});
   const [budgetMinor,setBudgetMinor]=useState(0); const [outstandingDisplayMode,setOutstandingDisplayMode]=useState<'monthly'|'historical'|'both'>('both'); const [paymentAllocationPolicy,setPaymentAllocationPolicy]=useState<'all_fifo'|'generated_by_payment_date'>('generated_by_payment_date'); const [budgetInput,setBudgetInput]=useState(''); const [budgetEditing,setBudgetEditing]=useState(false); const [categories,setCategories]=useState<string[]>(['Groceries','Fuel','Food & dining','Shopping','Bills & utilities','Travel','Education','Health','Entertainment','Other']); const [editingCategory,setEditingCategory]=useState<string|null>(null); const [editingCategoryName,setEditingCategoryName]=useState(''); const [newCategory,setNewCategory]=useState(''); const [installPrompt,setInstallPrompt]=useState<any>(null);
   const [cycleData,setCycleData]=useState<{key:string;list:Txn[]}|null>(null); const [editingAppId,setEditingAppId]=useState<number|null>(null); const [editingAppName,setEditingAppName]=useState('');
@@ -628,20 +641,18 @@ function AppShell() {
   const followingBudgetSpend=txns.reduce((sum,t)=>{const card=activeCards.find(c=>c.id===t.card_id);if(!card||!t.settlement_date)return sum;const cycle=cycleFor(card,t.settlement_date);const attributionDate=card.budget_attribution==='due'?shiftIsoDate(cycle.end,Number(card.due_days)||0):shiftIsoDate(cycle.end,1);return attributionDate.slice(0,7)===followingBudgetMonth?sum+t.amount_minor:sum},0);
   const nextMonthUnpaid=statements.filter(s=>{const card=activeCards.find(c=>c.id===s.card_id);if(!card)return false;const attributionDate=card.budget_attribution==='due'?s.due_date: s.statement_date;return String(attributionDate).slice(0,7)===nextBudgetMonth}).reduce((sum,s)=>sum+Number(s.outstanding_minor||0),0);
   const previousBudgetMonth=(()=>{const d=new Date(`${budgetMonth}-02T12:00:00`);d.setMonth(d.getMonth()-1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`})(); const nextBudgetPct=budgetMinor>0?nextBudgetSpend/budgetMinor*100:(nextBudgetSpend>0?Infinity:0); const nextFillBudgetPct=budgetMinor>0?(nextBudgetSpend>budgetMinor?budgetMinor/nextBudgetSpend*100:Math.min(100,nextBudgetPct)):(nextBudgetSpend>0?0:0); const nextExcessPct=nextBudgetSpend>budgetMinor&&nextBudgetSpend>0?(nextBudgetSpend-budgetMinor)/nextBudgetSpend*100:(budgetMinor===0&&nextBudgetSpend>0?100:0); 
-  // Option A: automatic selection is applied when entering/reloading the
-  // dashboard or when the active-card billing schedule changes. A manual swipe
-  // is left alone for the rest of that dashboard visit.
+  // Apply the billing-schedule default only when the user has never chosen
+  // an overview slide. Once a preference exists, navigation and refresh must
+  // restore that exact slide instead of replacing it with the calculated default.
   useEffect(()=>{
-    if(tab!=='dashboard'||!dataReady)return;
+    if(tab!=='dashboard'||!dataReady||overviewIndexPreferenceExists.current)return;
     let frame=0;
-    // Wait until the dashboard carousel has been laid out before calculating
-    // the target offset. The calculated index is an explicit dependency so
-    // crossing the latest billing-availability date also re-runs this effect.
     frame=window.requestAnimationFrame(()=>{
       const track=overviewTrackRef.current;
       if(!track)return;
       track.scrollTo({left:track.clientWidth*overviewDefaultIndex,behavior:'auto'});
       setOverviewIndex(overviewDefaultIndex);
+      overviewIndexPreferenceExists.current=true;
     });
     return()=>window.cancelAnimationFrame(frame);
   },[tab,dataReady,overviewDefaultIndex,overviewCardScheduleKey,budgetMonth]);
@@ -845,9 +856,24 @@ function AppShell() {
     catch { notify('Clipboard access is unavailable in this browser.', 'error'); }
   };
   const txnMenuProps = { detailsMode: modalDisplayMode, onEditTxn: editTransactionFromMenu, onDeleteTxn: deleteTransactionFromMenu, onCopyTxn: copyTransactionFromMenu, onViewTxn: (txn: Txn) => { const openAsModal = modalDisplayMode === 'modal'; navigate(`/transactions/${txn.id}`, openAsModal ? { state: { backgroundLocation: location } } : undefined); } };
-  const dashboardViewProps = { Activity, CalendarDays, ChevronDown, ChevronRight, CreditCard, Empty, Link, ModalLink, Plus, TxnRow, ...txnMenuProps, activeCards, budgetMinor, budgetMonth, budgetPct, calendarMonthSpend, cards, cardsExpanded, currentSpend, dashboard, dashboardMoney, day, excessPct, fillBudgetPct, followingBudgetSpend, goTab, money, monthLabel, nextBudgetMonth, nextBudgetPct, nextBudgetSpend, nextExcessPct, nextFillBudgetPct, nextMonthUnpaid, overviewIndex, overviewTrackRef, previousBudgetMonth, previousDues, setActiveCard, setCardsExpanded, setCycle, setEditTxn, setOverviewIndex, setSummaryExpanded, summaryExpanded };
+  const makePaymentFromDues = (card: Card) => {
+    setActiveCard(card);
+    navigate('/payments/new', modalDisplayMode === 'modal' ? { state: { backgroundLocation: location } } : undefined);
+  };
+  const viewCardFromDues = (card: Card) => {
+    setActiveCard(card);
+    navigate(`/cards/${card.id}`);
+  };
+  const editCardFromDues = (card: Card) => {
+    setEditCard(card);
+    const returnTo = `${location.pathname}${location.search}${location.hash}`;
+    navigate(`/cards/${card.id}/edit`, modalDisplayMode === 'modal'
+      ? { state: { backgroundLocation: location, returnTo } }
+      : { state: { returnTo } });
+  };
+  const dashboardViewProps = { onMakePaymentForCard: makePaymentFromDues, onViewCardDetails: viewCardFromDues, onEditCardFromDues: editCardFromDues, Activity, CalendarDays, ChevronDown, ChevronRight, CreditCard, Empty, Link, ModalLink, Plus, TxnRow, ...txnMenuProps, statements, activeCards, budgetMinor, budgetMonth, budgetPct, calendarMonthSpend, cards, cardsExpanded, currentSpend, dashboard, dashboardMoney, day, excessPct, fillBudgetPct, followingBudgetSpend, goTab, money, monthLabel, nextBudgetMonth, nextBudgetPct, nextBudgetSpend, nextExcessPct, nextFillBudgetPct, nextMonthUnpaid, overviewIndex, overviewTrackRef, previousBudgetMonth, previousDues, setActiveCard, setCardsExpanded, setCycle, setEditTxn, setOverviewIndex, setSummaryExpanded, summaryExpanded };
   const transactionsViewProps = { Empty, ModalLink, Plus, Search, SlidersHorizontal, TxnRow, ...txnMenuProps, X, cards, day, filterCount, filters, grouped, money, monthLabel, setActiveCard, setEditTxn, setFilters, setFiltersOpen, shownTxns, txns, request, notify, statements };
-  const cardViewProps = { Button, Check, ChevronDown, CreditCard, Empty, ModalLink, Pencil, Plus, Search, ShieldCheck, TxnRow, ...txnMenuProps, Wallet, X, activeCard, cardTxnQuery, currentEnd, currentStart, cycle, cycleSheetOpen, cycleTxns, day, groupedCycleTxns, minorToRupees, money, monthLabel, notify, perform, request, rupeesToMinor, selectedStatement, setActiveCard, setCardTxnQuery, setCycleSheetOpen, setEditTxn, shownCycleTxns };
+  const cardViewProps = { Button, Check, ChevronDown, CreditCard, Empty, Modal, ModalLink, Pencil, Plus, Search, ShieldCheck, TxnRow, ...txnMenuProps, Wallet, X, activeCard, cardTxnQuery, currentEnd, currentStart, cycle, cycleSheetOpen, cycleTxns, day, groupedCycleTxns, minorToRupees, money, monthLabel, notify, perform, request, rupeesToMinor, selectedStatement, setActiveCard, setCardTxnQuery, setCycleSheetOpen, setEditTxn, shownCycleTxns };
   const paymentsViewProps = { Empty, Metric, ModalLink, Plus, RefreshCw, Trash2, RotateCcw, day, deletePaymentOptimistic, restorePaymentOptimistic, deletedPayments, money, payments, statements };
   const settingsViewProps = { outstandingDisplayMode, setOutstandingDisplayMode, paymentAllocationPolicy, setPaymentAllocationPolicy, Modal, theme, setTheme, resolvedTheme, status, receiptStorageStatus, refreshReceiptStorageStatus, logOut, modalDisplayMode, setModalDisplayMode, Activity, Button, Check, Download, Field, ModalLink, Pencil, Plus, Trash2, Wallet, X, activeCards, apps, budgetEditing, budgetInput, budgetMinor, budgetPct, busy, categories, currentSpend, dashboardMoney, density, doInstall, editingAppId, editingAppName, editingCategory, editingCategoryName, goTab, inputClass, minorToRupees, navigate, newCategory, notify, perform, request, rupeesToMinor, setBudgetEditing, setBudgetInput, setCategories, setDensity, setEditingAppId, setEditingAppName, setEditingCategory, setEditingCategoryName, setNewCategory };
 
@@ -859,13 +885,18 @@ function AppShell() {
     transactions: <TransactionsView {...transactionsViewProps} />,
     card: <CardView {...cardViewProps} />,
     payments: <PaymentsView {...paymentsViewProps} />,
-    settings: <SettingsView {...settingsViewProps} />,
+    settings: <SettingsOverviewPage {...settingsViewProps} />,
+    settingsFinancial: <FinancialSettingsPage {...settingsViewProps} />,
+    settingsExperience: <DisplaySettingsPage {...settingsViewProps} />,
+    settingsStorage: <StorageSettingsPage {...settingsViewProps} />,
+    settingsAccount: <AccountSettingsPage {...settingsViewProps} />,
+    settingsAbout: <AboutSettingsPage {...settingsViewProps} />,
     cardCreate: <CardForm key="new-card" page initial={null} busy={busy} onClose={()=>closeRouteModal('/settings')} onSave={data=>void saveCardOptimistic(data)}/>,
     cardEdit: <CardForm key={editCard?.id ?? 'edit-card-loading'} page initial={editCard} busy={busy} onClose={()=>closeRouteModal(editCard?`/cards/${editCard.id}`:'/settings')} onSave={data=>void saveCardOptimistic(data)}/>,
     transactionCreate: <TxnForm key="new-transaction" page initial={null} cards={activeCards.filter(c=>c.id>0)} apps={apps} categories={categories} defaultCard={activeCard} busy={busy} receiptStorageStatus={receiptStorageStatus} onClose={()=>closeRouteModal(activeCard?`/cards/${activeCard.id}`:'/transactions')} onSave={saveTransaction}/>,
     transactionEdit: <TxnForm key={routeEditTxn?.id ?? 'edit-transaction-loading'} page initial={routeEditTxn} cards={activeCards.filter(c=>c.id>0)} apps={apps} categories={categories} defaultCard={activeCard} busy={busy} receiptStorageStatus={receiptStorageStatus} onClose={()=>{const returnTo=(location.state as any)?.returnTo; if(backgroundLocation) closeRouteModal('/transactions'); else navigate(typeof returnTo==='string'&&returnTo.startsWith('/')?returnTo:'/transactions')}} onSave={saveTransaction}/>,
-    paymentCreate: <PaymentForm key="new-payment" page initial={null} cards={activeCards.filter(c=>c.id>0)} defaultCard={activeCard} busy={busy} onClose={()=>closeRouteModal('/payments')} onSave={data=>void savePaymentOptimistic(data)}/>,
-    paymentEdit: <PaymentForm key={editPayment?.id ?? 'edit-payment-loading'} page initial={editPayment} cards={activeCards.filter(c=>c.id>0)} defaultCard={activeCard} busy={busy} onClose={()=>closeRouteModal(editPayment?`/payments/${editPayment.id}`:'/payments')} onSave={data=>void savePaymentOptimistic(data)}/>,
+    paymentCreate: <PaymentForm key="new-payment" page initial={null} cards={activeCards.filter(c=>c.id>0)} defaultCard={activeCard} statements={statements} busy={busy} onClose={()=>closeRouteModal('/payments')} onSave={data=>void savePaymentOptimistic(data)}/>,
+    paymentEdit: <PaymentForm key={editPayment?.id ?? 'edit-payment-loading'} page initial={editPayment} cards={activeCards.filter(c=>c.id>0)} defaultCard={activeCard} statements={statements} busy={busy} onClose={()=>closeRouteModal(editPayment?`/payments/${editPayment.id}`:'/payments')} onSave={data=>void savePaymentOptimistic(data)}/>,
   };
 
   if(loading) return <div className="min-h-dvh bg-neutral-950 p-5 text-neutral-100"><div className="mx-auto flex min-h-[70dvh] max-w-md flex-col justify-center gap-4"><div className="h-12 w-12 animate-pulse rounded-2xl bg-violet-600/70"/><div className="h-5 w-40 animate-pulse rounded bg-neutral-800"/><div className="h-4 w-56 animate-pulse rounded bg-neutral-900"/><div className="mt-4 h-28 animate-pulse rounded-3xl bg-neutral-900"/></div></div>;
@@ -923,7 +954,7 @@ function AppShell() {
   </div>;
 }
 
-function Metric({label,value,tone}:{label:string;value:string;tone:'amber'|'green'}) {return <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-4"><div className={`text-xs font-semibold ${tone==='amber'?'text-amber-300':'text-emerald-300'}`}>{label}</div><div className="mt-1 text-lg font-bold">{value}</div></div>}
+function Metric({label,value,tone}:{label:string;value:string;tone:'amber'|'green'}) {return <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-4"><div className={`text-xs font-semibold ${tone==='amber'?'payment-metric-label-amber':'payment-metric-label-green'}`}>{label}</div><div className="mt-1 text-lg font-bold">{value}</div></div>}
 function Toast({toast,onClose}:{toast:{message:string;kind:'success'|'error'|'info'};onClose:()=>void}) {const color=toast.kind==='error'?'border-red-900 bg-red-950 text-red-100':toast.kind==='success'?'border-emerald-900 bg-emerald-950 text-emerald-100':'border-neutral-700 bg-neutral-900 text-neutral-100';return <div role="status" aria-live="polite" className={`fixed left-4 right-4 top-[calc(env(safe-area-inset-top)+1rem)] z-100 mx-auto flex max-w-md items-center gap-3 rounded-2xl border px-4 py-3 text-sm shadow-2xl ${color}`}><span className="flex-1">{toast.message}</span><button onClick={onClose} aria-label="Dismiss message"><X size={17}/></button></div>}
 
 function AuthForm({setup,busy,onSubmit}:{setup:boolean;busy:boolean;onSubmit:(u:string,p:string,remember:boolean)=>void}) {
@@ -994,7 +1025,7 @@ function CardForm({initial,busy,onClose,onSave,page=false}:{initial:Card|null;bu
       {billingInfoOpen&&<div id="billing-cycle-allocation-tooltip" role="tooltip" className="absolute bottom-full left-0 z-30 mb-2 max-w-[min(22rem,calc(100vw-3rem))] rounded-xl border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-xs leading-5 text-neutral-200 shadow-xl">Cycle allocation uses settlement date. Billing days 29–31 are adjusted to the final day in shorter months.</div>}
     </div>
     {initial&&<label className="flex items-center gap-3 text-sm text-neutral-300"><input type="checkbox" className="accent-violet-500" checked={v.active} onChange={e=>update('active',e.target.checked)}/> Card active</label>}
-    <div className="sheet-card-actions flex gap-2 pt-1"><Button type="submit" disabled={busy} className="min-h-14 flex-1">{busy?'Saving…':'Save card'}</Button><Button variant="secondary" onClick={onClose} className="min-h-14">Cancel</Button></div>
+    <div className="sheet-card-actions grid grid-cols-2 gap-2 pt-1"><Button variant="secondary" type="button" disabled={busy} onClick={onClose} className="min-h-14 w-full">Cancel</Button><Button type="submit" disabled={busy} className="min-h-14 w-full">{busy?'Saving…':'Save card'}</Button></div>
   </form></Modal>;
 }
 
@@ -1055,9 +1086,9 @@ function TxnForm({initial,cards,apps,categories,defaultCard,busy,receiptStorageS
   </div>;
 }
 
-function PaymentForm({initial,cards,defaultCard,busy,onClose,onSave,page=false}:{initial:Payment|null;cards:Card[];defaultCard:Card|null;busy:boolean;onClose:()=>void;onSave:(data:any)=>void;page?:boolean}) {
- const initialDateTime=initial?dateTimeLocal(initial.paid_at):dateTimeLocal();const [v,setV]=useState({card_id:String(initial?.card_id||defaultCard?.id||cards[0]?.id||''),amount:initial?minorToRupees(initial.amount_minor):'',paid_date:initialDateTime.slice(0,10),paid_time:initialDateTime.slice(11,16),reference:initial?.reference||'',notes:initial?.notes||''});const update=(k:string,x:any)=>setV(p=>({...p,[k]:x}));
- return <Modal title={initial?'Edit bill payment':'Record bill payment'} onClose={onClose} inline={page}><form className="space-y-4" onSubmit={e=>{e.preventDefault();onSave({...(initial?{id:initial.id}:{}),card_id:Number(v.card_id),amount_minor:rupeesToMinor(v.amount),paid_at:toSqlDateTime(`${v.paid_date}T${v.paid_time}`),reference:v.reference,notes:v.notes})}}><Field label="Credit card" required><SelectionControl title="Credit card" value={v.card_id} onChange={value=>update('card_id',value)} options={cards.map(c=>({value:String(c.id),label:`${c.name} · ${c.bank_name}`}))}/></Field><Field label="Payment amount (₹)" required><input type="number" min="0.01" step="0.01" inputMode="decimal" required className={`${inputClass} text-xl font-bold`} value={v.amount} onChange={e=>update('amount',e.target.value)} placeholder="0.00"/></Field><div className="grid grid-cols-2 gap-3"><Field label="Payment date" required><input type="date" required className={inputClass} value={v.paid_date} onChange={e=>update('paid_date',e.target.value)}/></Field><Field label="Payment time" required><input type="time" required className={inputClass} value={v.paid_time} onChange={e=>update('paid_time',e.target.value)}/></Field></div><Field label="Reference (optional)"><input className={inputClass} value={v.reference} onChange={e=>update('reference',e.target.value)} placeholder="Bank reference / UTR"/></Field><Field label="Notes (optional)"><input className={inputClass} value={v.notes} onChange={e=>update('notes',e.target.value)} placeholder="Payment details"/></Field><p className="rounded-2xl bg-amber-950/60 p-3 text-xs leading-5 text-amber-200">Payment is allocated to oldest outstanding statements first. Bill payments reduce dues; they do not increase expense totals.</p><div className="flex gap-2"><Button type="submit" disabled={busy||!cards.length} className="flex-1">{busy?'Saving…':initial?'Save changes':'Record payment'}</Button><Button variant="secondary" onClick={onClose}>Cancel</Button></div></form></Modal>;
+function PaymentForm({initial,cards,defaultCard,statements,busy,onClose,onSave,page=false}:{initial:Payment|null;cards:Card[];defaultCard:Card|null;statements:Statement[];busy:boolean;onClose:()=>void;onSave:(data:any)=>void;page?:boolean}) {
+ const initialDateTime=initial?dateTimeLocal(initial.paid_at):dateTimeLocal();const suggestedAmount=(cardId:string)=>minorToRupees(statements.filter(s=>s.card_id===Number(cardId)).reduce((total,s)=>total+Math.max(0,s.outstanding_minor),0));const initialCardId=String(initial?.card_id||defaultCard?.id||cards[0]?.id||'');const amountEdited=useRef(Boolean(initial));const [v,setV]=useState({card_id:initialCardId,amount:initial?minorToRupees(initial.amount_minor):suggestedAmount(initialCardId),paid_date:initialDateTime.slice(0,10),paid_time:initialDateTime.slice(11,16),reference:initial?.reference||'',notes:initial?.notes||''});const update=(k:string,x:any)=>setV(p=>({...p,[k]:x}));const updateCard=(cardId:string)=>setV(p=>({...p,card_id:cardId,...(!amountEdited.current&&!initial?{amount:suggestedAmount(cardId)}:{})}));useEffect(()=>{if(!initial&&!amountEdited.current)setV(p=>({...p,amount:suggestedAmount(p.card_id)}));},[statements]);
+ return <Modal title={initial?'Edit bill payment':'Record bill payment'} onClose={onClose} inline={page}><form className="payment-form space-y-4" onSubmit={e=>{e.preventDefault();onSave({...(initial?{id:initial.id}:{}),card_id:Number(v.card_id),amount_minor:rupeesToMinor(v.amount),paid_at:toSqlDateTime(`${v.paid_date}T${v.paid_time}`),reference:v.reference,notes:v.notes})}}><Field label="Credit card" required><SelectionControl title="Credit card" value={v.card_id} onChange={value=>updateCard(value)} options={cards.map(c=>({value:String(c.id),label:`${c.name} · ${c.bank_name}`}))}/></Field><Field label="Payment amount (₹)" required><input type="number" min="0.01" step="0.01" inputMode="decimal" required className={`${inputClass} text-xl font-bold`} value={v.amount} onChange={e=>{amountEdited.current=true;update('amount',e.target.value)}} placeholder="0.00"/></Field><div className="grid grid-cols-2 gap-3"><Field label="Payment date" required><input type="date" required className={inputClass} value={v.paid_date} onChange={e=>update('paid_date',e.target.value)}/></Field><Field label="Payment time" required><input type="time" required className={inputClass} value={v.paid_time} onChange={e=>update('paid_time',e.target.value)}/></Field></div><Field label="Reference (optional)"><input className={inputClass} value={v.reference} onChange={e=>update('reference',e.target.value)} placeholder="Bank reference / UTR"/></Field><Field label="Notes (optional)"><input className={inputClass} value={v.notes} onChange={e=>update('notes',e.target.value)} placeholder="Payment details"/></Field><p className="payment-allocation-note rounded-2xl bg-amber-950/60 p-3 text-xs leading-5 text-amber-200">Payment is allocated to oldest outstanding statements first. Bill payments reduce dues; they do not increase expense totals.</p><div className="flex gap-2"><Button type="submit" disabled={busy||!cards.length} className="flex-1">{busy?'Saving…':initial?'Save changes':'Record payment'}</Button><Button variant="secondary" onClick={onClose}>Cancel</Button></div></form></Modal>;
 }
 function TxnRow({txn,card,to,onNavigate,stripeIndex=0,detailsMode='modal',onEditTxn,onDeleteTxn,onCopyTxn,onViewTxn}:{txn:Txn;card?:Card;to:string;onNavigate?:()=>void;stripeIndex?:number;detailsMode?:ModalDisplayMode;onEditTxn?:(txn:Txn)=>void;onDeleteTxn?:(txn:Txn)=>void;onCopyTxn?:(txn:Txn)=>void;onViewTxn?:(txn:Txn)=>void}) {
   void card;

@@ -6,6 +6,11 @@ export type RoutePageContent = {
   card: React.ReactNode;
   payments: React.ReactNode;
   settings: React.ReactNode;
+  settingsFinancial: React.ReactNode;
+  settingsExperience: React.ReactNode;
+  settingsStorage: React.ReactNode;
+  settingsAccount: React.ReactNode;
+  settingsAbout: React.ReactNode;
   cardCreate: React.ReactNode;
   cardEdit: React.ReactNode;
   transactionCreate: React.ReactNode;
@@ -31,7 +36,7 @@ export type RouteTransaction = {
   has_attachment?: number;
 };
 export type RoutePayment = { id: number; amount_minor?: number; card_name?: string; paid_at?: string; reference?: string; allocated_minor?: number; unallocated_minor?: number; notes?: string };
-export type RouteCard = { id: number; name: string; bank_name: string; last4: string; active: number; credit_limit_minor?: number | null; current_minor?: number; dues_minor?: number; billing_day?: number; due_days?: number };
+export type RouteCard = { id: number; name: string; bank_name: string; last4: string; active: number; credit_limit_minor?: number | null; current_minor?: number; dues_minor?: number; dues_display_minor?: number; dues_status?: 'overdue'|'due'|'partially_paid'|'fully_paid'|'no_dues'; dues_status_days?: number; billing_day?: number; due_days?: number };
 
 export type AppRouteContext = {
   pages: RoutePageContent;
