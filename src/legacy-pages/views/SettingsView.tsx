@@ -3,9 +3,19 @@ import { DATE_FORMATS, DEFAULT_DATE_FORMAT, formatDateOnly, getDateFormat, isVal
 import type { AppItem, Card, StateSetter } from './view-types';
 import { Check, ChevronDown, CreditCard as CreditCardIcon, Info as InfoIcon, Settings as SettingsIcon, SlidersHorizontal as Sliders, Sun, Moon, Monitor, Wallet as WalletIcon, LogOut, UserRound, Eye, EyeOff, Cloud, RefreshCw, AlertTriangle } from 'lucide-react';
 const formatDateExample = (format: string) => format.replace(/YYYY/g, '2026').replace(/YY/g, '26').replace(/MMMM/g, 'November').replace(/MMM/g, 'Nov').replace(/MM/g, '11').replace(/M/g, '11').replace(/DD/g, '16').replace(/D/g, '16');
-type Props = { [key: string]: any; activeCards: Card[]; apps: AppItem[]; categories: string[]; setCategories: StateSetter<string[]> };
+type SettingsPageKey = 'overview' | 'financial' | 'experience' | 'storage' | 'account' | 'about';
+const SETTINGS_PAGE_TITLES: Record<SettingsPageKey, string> = {
+  overview: 'Settings',
+  financial: 'Financial settings',
+  experience: 'Display & interaction',
+  storage: 'Storage',
+  account: 'Account & security',
+  about: 'About',
+};
+type Props = { [key: string]: any; page?: SettingsPageKey; activeCards: Card[]; apps: AppItem[]; categories: string[]; setCategories: StateSetter<string[]> };
 
 export default function SettingsView(props: Props) {
+  const page: SettingsPageKey = props.page || 'overview';
   const { Activity, Button, Download, Field, Modal, ModalLink, Pencil, Plus, Trash2, Wallet, X, activeCards, apps, budgetEditing, budgetInput, budgetMinor, budgetPct, busy, categories, currentSpend, dashboardMoney, density, modalDisplayMode, setModalDisplayMode, doInstall, editingAppId, editingAppName, editingCategory, editingCategoryName, goTab, inputClass, minorToRupees, navigate, newCategory, notify, perform, request, rupeesToMinor, setBudgetEditing, setBudgetInput, setCategories, setDensity, setEditingAppId, setEditingAppName, setEditingCategory, setEditingCategoryName, setNewCategory } = props;
   const { theme, setTheme, resolvedTheme, status, logOut, receiptStorageStatus, refreshReceiptStorageStatus } = props;
   const { outstandingDisplayMode, setOutstandingDisplayMode, paymentAllocationPolicy, setPaymentAllocationPolicy } = props;
@@ -15,6 +25,20 @@ export default function SettingsView(props: Props) {
   const [customDateFormat, setCustomDateFormat] = useState(() => DATE_FORMATS.includes(getDateFormat() as typeof DATE_FORMATS[number]) ? '' : getDateFormat());
   const [passwordFormOpen, setPasswordFormOpen] = useState(false);
   const [dateFormatPickerOpen, setDateFormatPickerOpen] = useState(false);
+  const [duesDisplayMode, setDuesDisplayMode] = useState<'dues' | 'all'>(() => {
+    try {
+      return localStorage.getItem('ccm-dashboard-dues-display-mode') === 'all' ? 'all' : 'dues';
+    } catch {
+      return 'dues';
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('ccm-dashboard-dues-display-mode', duesDisplayMode);
+    } catch {
+      // Keep the preference for this session if browser storage is unavailable.
+    }
+  }, [duesDisplayMode]);
   useEffect(() => { try { localStorage.setItem('ccm-date-format', dateFormat); } catch { /* Keep the in-memory preference if storage is unavailable. */ } }, [dateFormat]);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -36,10 +60,12 @@ export default function SettingsView(props: Props) {
   };
   return (
     <div className="settings-screen">
+      {page === 'overview' && (
+        <>
       <div className="settings-page-intro">
         <div className="settings-page-icon"><SettingsIcon size={22}/></div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-xl font-bold tracking-tight">Preferences</h2>
+          <h2 className="text-xl font-bold tracking-tight">Settings</h2>
           <p className="mt-1 text-sm text-neutral-500">Personalize your finance workspace.</p>
         </div>
       </div>
@@ -78,6 +104,28 @@ export default function SettingsView(props: Props) {
         <p className="mt-3 text-xs text-neutral-500">Preview: <strong className="text-neutral-200">{formatDateOnly('2026-11-16', dateFormat)}</strong> is the current preview. Recommended default: {DEFAULT_DATE_FORMAT}. CSV exports use ISO dates (YYYY-MM-DD) for spreadsheet compatibility.</p>
       </section>
 
+
+      <div className="mt-5 space-y-3">
+        <div className="settings-section-label">MORE SETTINGS</div>
+        {[
+          { href: '/settings/financial', title: 'Financial settings', description: 'Cards, budgets, categories and payment rules', icon: CreditCardIcon },
+          { href: '/settings/experience', title: 'Display & interaction', description: 'Display density and modal behaviour', icon: Sliders },
+          { href: '/settings/storage', title: 'Storage', description: 'Receipt storage status and diagnostics', icon: Cloud },
+          { href: '/settings/account', title: 'Account & security', description: 'Account information and password', icon: UserRound },
+          { href: '/settings/about', title: 'About', description: 'Application information and installation', icon: InfoIcon },
+        ].map(item => { const Icon = item.icon; return <button key={item.href} type="button" onClick={() => navigate(item.href)} className="settings-navigation-row flex w-full items-center gap-3 rounded-2xl border border-neutral-800 bg-neutral-900 p-4 text-left transition hover:border-violet-500/60"><span className="settings-row-icon"><Icon size={19}/></span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{item.title}</span><span className="mt-0.5 block text-xs text-neutral-500">{item.description}</span></span><ChevronDown size={18} className="-rotate-90 text-neutral-500"/></button>; })}
+      </div>
+        </>
+      )}
+      {page === 'financial' && (
+        <>
+      <div className="settings-page-intro">
+        <button type="button" onClick={() => navigate('/settings')} aria-label="Back to Settings" className="settings-page-icon"><ChevronDown size={22} className="rotate-90"/></button>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold tracking-tight">{SETTINGS_PAGE_TITLES[page]}</h2>
+          <p className="mt-1 text-sm text-neutral-500">Manage this group of preferences.</p>
+        </div>
+      </div>
       <div className="settings-section-label">FINANCIAL SETTINGS</div>
       <details id="financial-settings" name="settings-section" className="settings-accordion">
         <summary className="settings-accordion-summary">
@@ -100,6 +148,32 @@ export default function SettingsView(props: Props) {
       <section className="mb-4 rounded-3xl border border-neutral-800 bg-neutral-900 p-4"><h2 className="font-bold">Outstanding bill display</h2><p className="mt-1 text-xs leading-5 text-neutral-500">Choose whether unpaid bills show the selected month's statements, all historical outstanding, or both figures separately. This preference does not change payment allocations.</p><div className="mt-3 space-y-2">{[{value:'monthly',label:'Monthly outstanding only'},{value:'historical',label:'Historical carry-forward outstanding'},{value:'both',label:'Both separately'}].map(option=><label key={option.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 ${outstandingDisplayMode===option.value?'border-violet-500 bg-violet-500/10':'border-neutral-700 bg-neutral-950'}`}><input type="radio" name="outstanding-display-mode" checked={outstandingDisplayMode===option.value} onChange={()=>void perform(async()=>{await request('settings','POST',{outstanding_display_mode:option.value});setOutstandingDisplayMode(option.value)},'Outstanding display updated')} className="accent-violet-500"/><span className="text-sm font-medium">{option.label}</span></label>)}</div></section>
       <section className="mb-4 rounded-3xl border border-neutral-800 bg-neutral-900 p-4"><h2 className="font-bold">Payment allocation</h2><p className="mt-1 text-xs leading-5 text-neutral-500">Choose which statements can receive a payment. Changing this setting rebuilds payment allocations and may change historical outstanding balances; original payments and statements remain unchanged.</p><div className="mt-3 space-y-2">{[{value:'generated_by_payment_date',label:'FIFO restricted by payment date',description:'Only statements generated on or before the payment date can receive it.'},{value:'all_fifo',label:'FIFO across all statements',description:'Allocate to the oldest outstanding statement, including statements generated later.'}].map(option=><label key={option.value} className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${paymentAllocationPolicy===option.value?'border-violet-500 bg-violet-500/10':'border-neutral-700 bg-neutral-950'}`}><input type="radio" name="payment-allocation-policy" checked={paymentAllocationPolicy===option.value} onChange={()=>{if(paymentAllocationPolicy===option.value)return;if(!confirm('Changing payment allocation policy will rebuild allocations for all active payments. Statement balances may change. Continue?'))return;void perform(async()=>{await request('settings','POST',{payment_allocation_policy:option.value,confirm_reallocation:true});setPaymentAllocationPolicy(option.value)},'Payment allocations rebuilt using the selected policy')}} className="mt-1 accent-violet-500"/><span><span className="block text-sm font-semibold">{option.label}</span><span className="mt-1 block text-xs leading-5 text-neutral-500">{option.description}</span></span></label>)}</div></section>
 
+        </>
+      )}
+      {page === 'experience' && (
+        <>
+      <div className="settings-page-intro">
+        <button type="button" onClick={() => navigate('/settings')} aria-label="Back to Settings" className="settings-page-icon"><ChevronDown size={22} className="rotate-90"/></button>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold tracking-tight">{SETTINGS_PAGE_TITLES[page]}</h2>
+          <p className="mt-1 text-sm text-neutral-500">Manage this group of preferences.</p>
+        </div>
+      </div>
+      <div className="settings-section-label">DASHBOARD PREFERENCES</div>
+      <section className="mb-4 rounded-3xl border border-neutral-800 bg-neutral-900 p-4">
+        <h2 className="font-bold">Dues Bill display</h2>
+        <p className="mt-1 text-xs leading-5 text-neutral-500">Choose which cards appear in the Dashboard's Dues Bill section.</p>
+        <div className="mt-3 space-y-2">
+          <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 ${duesDisplayMode === 'dues' ? 'border-violet-500 bg-violet-500/10' : 'border-neutral-700 bg-neutral-950'}`}>
+            <input type="radio" name="dashboard-dues-display-mode" value="dues" checked={duesDisplayMode === 'dues'} onChange={() => setDuesDisplayMode('dues')} className="accent-violet-500"/>
+            <span className="text-sm font-medium">Only Dues Cards</span>
+          </label>
+          <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 ${duesDisplayMode === 'all' ? 'border-violet-500 bg-violet-500/10' : 'border-neutral-700 bg-neutral-950'}`}>
+            <input type="radio" name="dashboard-dues-display-mode" value="all" checked={duesDisplayMode === 'all'} onChange={() => setDuesDisplayMode('all')} className="accent-violet-500"/>
+            <span className="text-sm font-medium">All Cards</span>
+          </label>
+        </div>
+      </section>
       <div className="settings-section-label">APP PREFERENCES</div>
       <details id="app-preferences" name="settings-section" className="settings-accordion">
         <summary className="settings-accordion-summary">
@@ -110,6 +184,17 @@ export default function SettingsView(props: Props) {
         <div className="settings-accordion-content"><section className="mb-4 rounded-3xl border border-neutral-800 bg-neutral-900 p-4"><h2 className="font-bold">Display density</h2><p className="mt-1 text-xs text-neutral-500">Choose how much fits on screen.</p><div className="mt-3 grid grid-cols-2 gap-2"><button onClick={()=>setDensity('compact')} className={`density-option rounded-xl border p-3 text-sm font-semibold ${density==='compact'?'border-violet-500 bg-violet-500/15 text-violet-200':'border-neutral-700 bg-neutral-950 text-neutral-300'}`}>Compact</button><button onClick={()=>setDensity('comfortable')} className={`rounded-xl border p-3 text-sm font-semibold ${density==='comfortable'?'border-violet-500 bg-violet-500/15 text-violet-200':'border-neutral-700 bg-neutral-950 text-neutral-300'}`}>Comfortable</button></div></section><section className="mb-4 rounded-3xl border border-neutral-800 bg-neutral-900 p-4"><div className="flex items-start gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-violet-500/15 text-violet-300"><Sliders size={19}/></div><div><h2 className="font-bold">Modal & page display</h2><p className="mt-1 text-xs leading-5 text-neutral-500">One preference controls how transaction details and edit screens open throughout the app.</p></div></div><div className="mt-3 space-y-2"><label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${modalDisplayMode==='modal'?'border-violet-500 bg-violet-500/10':'border-neutral-700 bg-neutral-950'}`}><input type="radio" name="modal-display-mode" value="modal" checked={modalDisplayMode==='modal'} onChange={()=>setModalDisplayMode('modal')} className="mt-1 accent-violet-500"/><span><span className="block text-sm font-semibold">Open as modal <span className="ml-1 text-[10px] font-bold uppercase tracking-wide text-violet-300">Recommended</span></span><span className="mt-0.5 block text-xs leading-5 text-neutral-500">Details and edit forms appear over the current screen. Direct links use the Transactions screen as their background.</span></span></label><label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${modalDisplayMode==='full-page'?'border-violet-500 bg-violet-500/10':'border-neutral-700 bg-neutral-950'}`}><input type="radio" name="modal-display-mode" value="full-page" checked={modalDisplayMode==='full-page'} onChange={()=>setModalDisplayMode('full-page')} className="mt-1 accent-violet-500"/><span><span className="block text-sm font-semibold">Open as full page</span><span className="mt-0.5 block text-xs leading-5 text-neutral-500">Details and edit forms replace the current screen and use normal page navigation.</span></span></label></div><p className="mt-3 text-[11px] leading-4 text-neutral-600">This setting applies consistently to transaction details and transaction editing. Other application dialogs retain their own modal behaviour.</p></section></div>
       </details>
 
+        </>
+      )}
+      {page === 'storage' && (
+        <>
+      <div className="settings-page-intro">
+        <button type="button" onClick={() => navigate('/settings')} aria-label="Back to Settings" className="settings-page-icon"><ChevronDown size={22} className="rotate-90"/></button>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold tracking-tight">{SETTINGS_PAGE_TITLES[page]}</h2>
+          <p className="mt-1 text-sm text-neutral-500">Manage this group of preferences.</p>
+        </div>
+      </div>
       <div className="settings-section-label">STORAGE</div>
       <section className="receipt-storage-card rounded-3xl border p-4" aria-labelledby="receipt-storage-heading">
         <div className="flex items-start gap-3">
@@ -127,6 +212,17 @@ export default function SettingsView(props: Props) {
         <div className="receipt-storage-followup mt-3 flex flex-wrap items-center justify-between gap-2"><p className="receipt-storage-note text-[11px]">R2_ENDPOINT is optional when using the default Cloudflare endpoint.</p><button type="button" onClick={()=>void refreshReceiptStorageStatus?.()} disabled={storageState==='checking'} className="receipt-storage-action inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-xs font-semibold disabled:opacity-50"><RefreshCw size={14} className={storageState==='checking'?'animate-spin':''}/> Check again</button></div>
       </section>
 
+        </>
+      )}
+      {page === 'account' && (
+        <>
+      <div className="settings-page-intro">
+        <button type="button" onClick={() => navigate('/settings')} aria-label="Back to Settings" className="settings-page-icon"><ChevronDown size={22} className="rotate-90"/></button>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold tracking-tight">{SETTINGS_PAGE_TITLES[page]}</h2>
+          <p className="mt-1 text-sm text-neutral-500">Manage this group of preferences.</p>
+        </div>
+      </div>
       <div className="settings-section-label">ACCOUNT</div>
       <section className="settings-account-card">
         <div className="settings-account-identity">
@@ -160,6 +256,17 @@ export default function SettingsView(props: Props) {
         <div className="min-w-0 flex-1 basis-[12rem]"><h2 className="font-semibold">Help & Guide</h2><p className="mt-1 text-xs leading-5 text-neutral-500">Learn how to manage cards, transactions, statements and preferences.</p></div>
         <button type="button" onClick={() => navigate('/help')} className="settings-help-button ml-auto rounded-xl bg-violet-600 px-3 py-2.5 text-sm font-semibold text-white">Open guide</button>
       </section>
+        </>
+      )}
+      {page === 'about' && (
+        <>
+      <div className="settings-page-intro">
+        <button type="button" onClick={() => navigate('/settings')} aria-label="Back to Settings" className="settings-page-icon"><ChevronDown size={22} className="rotate-90"/></button>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold tracking-tight">{SETTINGS_PAGE_TITLES[page]}</h2>
+          <p className="mt-1 text-sm text-neutral-500">Manage this group of preferences.</p>
+        </div>
+      </div>
       <div className="settings-section-label">ABOUT</div>
       <details id="about" name="settings-section" className="settings-accordion">
         <summary className="settings-accordion-summary">
@@ -169,11 +276,13 @@ export default function SettingsView(props: Props) {
         </summary>
         <div className="settings-accordion-content"><section className="rounded-3xl border border-neutral-800 bg-neutral-900 p-4"><h2 className="font-bold">App and data</h2><p className="mt-2 text-sm leading-6 text-neutral-400">Private SQLite storage, responsive Android-style interface, installable PWA support, and browser-controlled session security.</p><div className="mt-3 grid grid-cols-2 gap-2"><Button variant="secondary" onClick={()=>goTab('payments')}><Wallet size={16}/> Bill payments</Button><Button variant="secondary" onClick={()=>void doInstall()}><Download size={16}/> Install app</Button></div><p className="mt-3 text-xs text-neutral-600">For installation, use HTTPS and your browser's Install app / Add to Home screen option.</p></section></div>
       </details>
-      <p className="settings-footer-note">Your preferences are applied to this application. Financial records remain unchanged when you update display settings.</p>
-      <button type="button" disabled={props.busy} onClick={()=>void logOut()} className="settings-logout-button" aria-label={props.busy ? 'Logging out' : 'Log out'}>
+        </>
+      )}
+      {page === 'overview' && <p className="settings-footer-note">Your preferences are applied to this application. Financial records remain unchanged when you update display settings.</p>}
+      {page === 'account' && <button type="button" disabled={props.busy} onClick={()=>void logOut()} className="settings-logout-button" aria-label={props.busy ? 'Logging out' : 'Log out'}>
         <LogOut size={19} aria-hidden="true" />
         <span>{props.busy ? 'Logging out…' : 'Log out'}</span>
-      </button>
+      </button>}
     </div>
   );
 }

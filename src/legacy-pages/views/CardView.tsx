@@ -1,22 +1,203 @@
 import { useState } from 'react';
-import { Download } from 'lucide-react';
+import { Download, MoreHorizontal } from 'lucide-react';
 import type { Card, GroupedTransactions, Txn, StateSetter } from './view-types';
 import StatementExportDialog from './StatementExportDialog';
-type Props = { [key: string]: any; activeCard: Card | null; cycleTxns: Txn[]; shownCycleTxns: Txn[]; groupedCycleTxns: GroupedTransactions; setActiveCard: StateSetter<Card | null> };
+
+type Props = {
+  [key: string]: any;
+  activeCard: Card | null;
+  cycleTxns: Txn[];
+  shownCycleTxns: Txn[];
+  groupedCycleTxns: GroupedTransactions;
+  setActiveCard: StateSetter<Card | null>;
+};
+
+function compactCycleRange(start: string, end: string, day: (value: string) => string) {
+  const parse = (value: string) => {
+    const match = day(value).match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/);
+    return match ? { day: match[1], month: match[2], year: match[3] } : null;
+  };
+  const from = parse(start);
+  const to = parse(end);
+  if (!from || !to) return `${day(start)} – ${day(end)}`;
+  if (from.year === to.year) return `${from.day} ${from.month} – ${to.day} ${to.month} ${to.year}`;
+  return `${from.day} ${from.month} ${from.year} – ${to.day} ${to.month} ${to.year}`;
+}
 
 export default function CardView(props: Props) {
   const [exportOpen, setExportOpen] = useState(false);
-  const { Button, Check, ChevronDown, CreditCard, Empty, ModalLink, Pencil, Plus, Search, ShieldCheck, TxnRow, onCopyTxn, onDeleteTxn, onEditTxn, onViewTxn, Wallet, X, activeCard, cardTxnQuery, currentEnd, currentStart, cycle, cycleSheetOpen, cycleTxns, day, groupedCycleTxns, minorToRupees, money, monthLabel, notify, perform, request, rupeesToMinor, selectedStatement, setActiveCard, setCardTxnQuery, setCycleSheetOpen, setEditTxn, shownCycleTxns } = props;
-  return (
-    activeCard ? <>
-        <section className="mb-3 rounded-3xl border border-neutral-800 bg-neutral-900 p-3"><div className="flex items-start gap-3"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl card-detail-icon bg-violet-600/20 text-violet-200"><CreditCard size={22}/></div><div className="min-w-0 flex-1"><div className="font-bold">{activeCard.name}</div><div className="text-sm text-neutral-400">{activeCard.bank_name}</div>{activeCard.last4&&<div className="mt-0.5 text-xs text-neutral-500">•••• {activeCard.last4}</div>}</div><button type="button" onClick={()=>setExportOpen(true)} className="export-card-button rounded-xl p-2 text-violet-300 hover:bg-violet-500/10" aria-label="Export this card's transactions" title="Export transactions"><Download size={18}/></button><ModalLink to={`/cards/${activeCard.id}/edit`} className="rounded-xl p-2 text-neutral-400 hover:bg-neutral-800" aria-label="Edit card"><Pencil size={17}/></ModalLink></div><div className="mt-3 grid grid-cols-2 gap-2"><div className="rounded-xl bg-neutral-800 p-2.5"><div className="text-xs text-neutral-400">Previous billed dues</div><div className="mt-1 font-bold">{money(activeCard.dues_minor)}</div></div><div className="rounded-xl bg-neutral-800 p-2.5"><div className="text-xs text-neutral-400">Current-cycle expenses</div><div className="mt-1 font-bold">{money(activeCard.current_minor)}</div></div></div><ModalLink to="/transactions/new" onClick={()=>{setActiveCard(activeCard);setEditTxn(null)}} className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white"><Plus size={16}/> Add Transaction</ModalLink></section>
-        <div className="mb-3"><label className="mb-1.5 block text-xs font-semibold text-neutral-400">Billing cycle</label><button type="button" className="flex w-full items-center justify-between gap-3 rounded-2xl border border-neutral-700 bg-neutral-900 px-3.5 py-3 text-left hover:border-violet-500" onClick={()=>setCycleSheetOpen(true)} aria-haspopup="dialog" aria-expanded={cycleSheetOpen}><span className="min-w-0"><span className="block font-semibold">{cycle==='current'?'Current':(selectedStatement?monthLabel(selectedStatement.cycle_end.slice(0,7)):'Select cycle')}</span><span className="mt-0.5 block text-xs text-neutral-400">{day(selectedStatement?.cycle_start||currentStart)} – {day(selectedStatement?.cycle_end||currentEnd)}</span></span><ChevronDown size={18} className="shrink-0 text-neutral-400"/></button></div>
-        {selectedStatement&&<section className="mb-4 rounded-3xl border border-neutral-800 bg-neutral-900 p-4"><div className="flex items-start justify-between gap-3"><div><div className="font-bold">Statement summary</div><div className="mt-1 text-xs text-neutral-500">Cycle {day(selectedStatement.cycle_start)} – {day(selectedStatement.cycle_end)}</div><div className="mt-1 text-xs text-neutral-500">Due date {day(selectedStatement.due_date)}</div></div><span className={`statement-status statement-status--${selectedStatement.status==='paid'?'paid':selectedStatement.status==='partial'?'partial':'unpaid'} rounded-full px-3 py-1 text-xs font-bold ${selectedStatement.status==='paid'?'bg-emerald-950 text-emerald-300':selectedStatement.status==='partial'?'bg-amber-950 text-amber-300':'bg-red-950 text-red-300'}`}>{selectedStatement.status==='paid'?'Paid':selectedStatement.status==='partial'?'Partially paid':'Unpaid'}</span></div><div className="mt-4 grid grid-cols-3 gap-2 border-t border-neutral-800 pt-3"><div><div className="text-xs text-neutral-500">Statement</div><div className="mt-1 text-sm font-bold">{money(selectedStatement.bill_amount_minor??selectedStatement.amount_minor)}</div></div><div><div className="text-xs text-neutral-500">Paid</div><div className="mt-1 text-sm font-bold">{money(selectedStatement.paid_minor)}</div></div><div><div className="text-xs text-neutral-500">Outstanding</div><div className="mt-1 text-sm font-bold">{money(selectedStatement.outstanding_minor)}</div></div></div>{selectedStatement.bank_amount_minor!=null&&<div className={`statement-reconciliation mt-3 rounded-xl p-2 text-xs ${Number(selectedStatement.bank_amount_minor)===Number(selectedStatement.amount_minor)?'statement-reconciliation--match bg-emerald-950/50 text-emerald-300':'statement-reconciliation--difference bg-amber-950/50 text-amber-200'}`}>Bank statement {money(selectedStatement.bank_amount_minor)} · {Number(selectedStatement.bank_amount_minor)===Number(selectedStatement.amount_minor)?'Matches recorded expenses':`Difference ${money(Number(selectedStatement.bank_amount_minor)-Number(selectedStatement.amount_minor))}`}</div>}<div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" className="flex-1" onClick={()=>{const raw=window.prompt('Enter the total amount shown on the bank statement (₹):',selectedStatement.bank_amount_minor!=null?minorToRupees(selectedStatement.bank_amount_minor):minorToRupees(selectedStatement.amount_minor));if(raw===null)return;const amount=Number(raw);if(!Number.isFinite(amount)||amount<0){notify('Enter a valid statement amount.','error');return;}void perform(()=>request('statement-action','POST',{id:selectedStatement.id,operation:'confirm',bank_amount_minor:rupeesToMinor(raw)}),'Statement confirmed against bank statement')}}><Check size={15}/>{selectedStatement.confirmed_at?'Reconfirm':'Confirm statement'}</Button>{selectedStatement.is_locked?<Button variant="danger" className="flex-1" onClick={()=>{if(confirm('Unlock this statement so transactions in this cycle can be edited?'))void perform(()=>request('statement-action','POST',{id:selectedStatement.id,operation:'unlock'}),'Statement unlocked')}}><ShieldCheck size={15}/> Unlock</Button>:<Button variant="secondary" className="flex-1" disabled={!selectedStatement.confirmed_at} onClick={()=>{if(confirm('Lock this statement? Transactions in this cycle will require unlocking before they can be changed.'))void perform(()=>request('statement-action','POST',{id:selectedStatement.id,operation:'lock'}),'Statement locked')} }><ShieldCheck size={15}/> Lock</Button>}<ModalLink to="/payments/new" className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white"><Wallet size={16}/> Record payment</ModalLink></div><div className="mt-2 text-[11px] text-neutral-500">{selectedStatement.is_locked?'Locked · unlock to add, edit or delete transactions':selectedStatement.confirmed_at?'Confirmed · editable until manually locked':'Confirm the bank statement, then optionally lock this cycle.'}</div></section>}
-        <div className="mb-3"><h2 className="font-bold">Transactions in this cycle</h2><p className="mt-1 text-xs text-neutral-500">Allocated by settlement date · {day(selectedStatement?.cycle_start||currentStart)} – {day(selectedStatement?.cycle_end||currentEnd)}</p></div>
-        <div data-transaction-sticky-search className="transaction-sticky-search sticky z-20 -mx-4 mb-3 border-b border-neutral-900 px-4 py-2"><div className="flex min-w-0 items-center gap-2 rounded-2xl border border-neutral-800 bg-neutral-900 px-3"><Search className="shrink-0 text-neutral-500" size={18}/><input className="transaction-search-input min-w-0 flex-1 bg-transparent py-3 text-sm text-neutral-100 outline-none placeholder:text-neutral-600" aria-label="Search this card's transactions" placeholder="Search this card's transactions" value={cardTxnQuery} onChange={e=>setCardTxnQuery(e.target.value)}/>{cardTxnQuery&&<button onClick={()=>setCardTxnQuery('')} aria-label="Clear card transaction search"><X size={16} className="text-neutral-500"/></button>}</div></div>
-        {shownCycleTxns.length===0?<Empty title={cycleTxns.length===0?"No transactions in this cycle":"No matching transactions"} detail={cycleTxns.length===0?"Transactions appear here according to this card's settlement-date billing rules.":"Try another search term or clear the search."}/>:<div className="space-y-6">{groupedCycleTxns.map(([month,dates])=><section key={month}><div className="transaction-month-sticky sticky z-10 -mx-1 mb-2 flex items-center justify-between border-b border-neutral-800/80 bg-neutral-950/95 px-1 py-2 backdrop-blur"><h3 className="font-bold">{monthLabel(month)}</h3><span className="text-xs font-medium tabular-nums text-neutral-400">{money(dates.reduce((sum,[,list])=>sum+list.reduce((n,t)=>n+t.amount_minor,0),0))}</span></div><div className="space-y-3">{dates.map(([date,list])=><div key={date} className="overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900"><div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900/80 px-3 py-2"><h4 className="text-xs font-semibold text-neutral-300">{day(date)}</h4><span className="text-xs tabular-nums text-neutral-500">{money(list.reduce((n,t)=>n+t.amount_minor,0))}</span></div>{list.map((t,index)=><TxnRow key={t.id} txn={t} stripeIndex={index} card={activeCard} to={`/transactions/${t.id}`} onNavigate={()=>setActiveCard(activeCard)} onCopyTxn={onCopyTxn} onDeleteTxn={onDeleteTxn} onEditTxn={onEditTxn} onViewTxn={onViewTxn}/>)}</div>)}</div></section>)}</div>}
-        
-        <StatementExportDialog key={`${activeCard.id}:${cycle}`} open={exportOpen} onClose={()=>setExportOpen(false)} cards={[activeCard]} statements={selectedStatement?[selectedStatement]:[]} fixedCardId={activeCard.id} initialMode="cycle" initialCycleId={selectedStatement?`statement-${selectedStatement.id}`:`current-${activeCard.id}`} request={request} notify={notify} searchQuery={cardTxnQuery}/>
-      </> : null
-  );
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const {
+    Check, ChevronDown, Empty, Modal, ModalLink, Pencil, Plus,
+    Search, ShieldCheck, TxnRow, Wallet, X, activeCard, cardTxnQuery, currentEnd,
+    currentStart, cycle, cycleSheetOpen, cycleTxns, day, groupedCycleTxns, money,
+    monthLabel, notify, perform, request, rupeesToMinor, selectedStatement,
+    setActiveCard, setCardTxnQuery, setCycleSheetOpen, setEditTxn, shownCycleTxns,
+  } = props;
+
+  const cycleExpensesMinor = cycleTxns.reduce((total, txn) => total + txn.amount_minor, 0);
+  const cycleStart = selectedStatement?.cycle_start || currentStart;
+  const cycleEnd = selectedStatement?.cycle_end || currentEnd;
+
+  const confirmStatement = () => {
+    if (!selectedStatement) return;
+    const raw = window.prompt(
+      'Enter the total amount shown on the bank statement (₹):',
+      selectedStatement.bank_amount_minor != null
+        ? String(selectedStatement.bank_amount_minor / 100)
+        : String(selectedStatement.amount_minor / 100),
+    );
+    if (raw === null) return;
+    const amount = Number(raw);
+    if (!Number.isFinite(amount) || amount < 0) {
+      notify('Enter a valid statement amount.', 'error');
+      return;
+    }
+    void perform(
+      () => request('statement-action', 'POST', {
+        id: selectedStatement.id,
+        operation: 'confirm',
+        bank_amount_minor: rupeesToMinor(raw),
+      }),
+      'Statement confirmed against bank statement',
+    );
+  };
+
+  const toggleStatementLock = () => {
+    if (!selectedStatement) return;
+    if (selectedStatement.is_locked) {
+      if (confirm('Unlock this statement so transactions in this cycle can be edited?')) {
+        void perform(() => request('statement-action', 'POST', {
+          id: selectedStatement.id,
+          operation: 'unlock',
+        }), 'Statement unlocked');
+      }
+      return;
+    }
+    if (confirm('Lock this statement? Transactions in this cycle will require unlocking before they can be changed.')) {
+      void perform(() => request('statement-action', 'POST', {
+        id: selectedStatement.id,
+        operation: 'lock',
+      }), 'Statement locked');
+    }
+  };
+
+  return activeCard ? <div className="card-detail-page">
+    <section className="card-detail-toolbar transaction-sticky-search -mx-4 -mt-4 mb-4 border-b px-4 py-2" aria-label="Card transaction tools">
+      {!searchOpen ? <div className="card-detail-toolbar-track">
+        <button
+          type="button"
+          className="card-detail-icon-button"
+          onClick={() => setSearchOpen(true)}
+          aria-label="Search transactions"
+          title="Search transactions"
+        >
+          <Search size={21} aria-hidden="true"/>
+        </button>
+
+        <button
+          type="button"
+          className="card-detail-cycle-compact"
+          onClick={() => setCycleSheetOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={cycleSheetOpen}
+          aria-label={`Billing cycle ${day(cycleStart)} to ${day(cycleEnd)}. Change billing cycle`}
+        >
+          <span className="card-detail-cycle-compact-label">Billing cycle</span>
+          <span className="card-detail-cycle-compact-value">
+            <span>{compactCycleRange(cycleStart, cycleEnd, day)}</span>
+            <ChevronDown size={16} aria-hidden="true"/>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          className="card-detail-icon-button card-detail-download-button"
+          onClick={() => setExportOpen(true)}
+          aria-label="Download statement"
+          title="Download statement"
+        >
+          <Download size={20} aria-hidden="true"/>
+        </button>
+
+        <button
+          type="button"
+          className="card-detail-icon-button"
+          onClick={() => setMoreOpen(true)}
+          aria-label="More card actions"
+          title="More"
+        >
+          <MoreHorizontal size={22} aria-hidden="true"/>
+        </button>
+      </div> : <div className="card-detail-search-expanded">
+        <Search size={21} aria-hidden="true" className="shrink-0"/>
+        <input
+          autoFocus
+          className="card-detail-search-input"
+          aria-label="Search this card's transactions"
+          placeholder="Search this card's transactions"
+          value={cardTxnQuery}
+          onChange={event => setCardTxnQuery(event.target.value)}
+        />
+        <button
+          type="button"
+          className="card-detail-search-close"
+          onClick={() => setSearchOpen(false)}
+          aria-label="Close search"
+        ><X size={20}/></button>
+      </div>}
+    </section>
+
+    <div className="mb-3">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-bold">Transactions</h2>
+        <span className="shrink-0 text-sm font-semibold tabular-nums text-neutral-500">{money(cycleExpensesMinor)}</span>
+      </div>
+      <p className="mt-1 text-xs text-neutral-500">Allocated by settlement date · {day(cycleStart)} – {day(cycleEnd)}</p>
+    </div>
+
+    {shownCycleTxns.length === 0 ? <Empty title={cycleTxns.length === 0 ? "No transactions in this cycle" : "No matching transactions"} detail={cycleTxns.length === 0 ? "Transactions appear here according to this card's settlement-date billing rules." : "Try another search term or clear the search."}/> : <div className="space-y-6">
+      {groupedCycleTxns.map(([month, dates]) => <section key={month}>
+        <div className="transaction-month-sticky sticky z-10 -mx-1 mb-2 flex items-center justify-between border-b border-neutral-800/80 bg-neutral-950/95 px-1 py-2 backdrop-blur">
+          <h3 className="font-bold">{monthLabel(month)}</h3>
+          <span className="text-xs font-medium tabular-nums text-neutral-400">{money(dates.reduce((sum, [, list]) => sum + list.reduce((total, txn) => total + txn.amount_minor, 0), 0))}</span>
+        </div>
+        <div className="space-y-3">
+          {dates.map(([date, list]) => <div key={date} className="overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900">
+            <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900/80 px-3 py-2">
+              <h4 className="text-xs font-semibold text-neutral-300">{day(date)}</h4>
+              <span className="text-xs tabular-nums text-neutral-500">{money(list.reduce((total, txn) => total + txn.amount_minor, 0))}</span>
+            </div>
+            {list.map((txn, index) => <TxnRow key={txn.id} txn={txn} stripeIndex={index} card={activeCard} to={`/transactions/${txn.id}`} onNavigate={() => setActiveCard(activeCard)} onCopyTxn={props.onCopyTxn} onDeleteTxn={props.onDeleteTxn} onEditTxn={props.onEditTxn} onViewTxn={props.onViewTxn}/>) }
+          </div>)}
+        </div>
+      </section>)}
+    </div>}
+
+    {moreOpen && <Modal title="More card actions" onClose={() => setMoreOpen(false)} bottomSheet>
+      <div className="card-detail-more-list">
+        <ModalLink to="/payments/new" onClick={() => setActiveCard(activeCard)} className="card-detail-more-action">
+          <Wallet size={20}/><span>Pay bill</span>
+        </ModalLink>
+        <ModalLink to={`/cards/${activeCard.id}/edit`} className="card-detail-more-action">
+          <Pencil size={20}/><span>Edit card</span>
+        </ModalLink>
+        <ModalLink to="/transactions/new" onClick={() => { setActiveCard(activeCard); setEditTxn(null); }} className="card-detail-more-action">
+          <Plus size={20}/><span>Add transaction</span>
+        </ModalLink>
+        {selectedStatement && <>
+          <div className="card-detail-more-divider"/>
+          <button type="button" className="card-detail-more-action" onClick={confirmStatement}>
+            <Check size={20}/><span>{selectedStatement.confirmed_at ? 'Reconfirm statement' : 'Confirm statement'}</span>
+          </button>
+          <button type="button" className="card-detail-more-action" onClick={toggleStatementLock} disabled={!selectedStatement.is_locked && !selectedStatement.confirmed_at}>
+            <ShieldCheck size={20}/><span>{selectedStatement.is_locked ? 'Unlock billing cycle' : 'Lock billing cycle'}</span>
+          </button>
+        </>}
+      </div>
+    </Modal>}
+
+    <StatementExportDialog key={`${activeCard.id}:${cycle}`} open={exportOpen} onClose={() => setExportOpen(false)} cards={[activeCard]} statements={selectedStatement ? [selectedStatement] : []} fixedCardId={activeCard.id} initialMode="cycle" initialCycleId={selectedStatement ? `statement-${selectedStatement.id}` : `current-${activeCard.id}`} request={request} notify={notify} searchQuery={cardTxnQuery}/>
+  </div> : null;
 }

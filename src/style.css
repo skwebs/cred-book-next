@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 
-:root{font-family:Inter,Roboto,"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;color-scheme:dark;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;background:#09090b;color:#f5f5f5;accent-color:#8b5cf6}*{box-sizing:border-box}html{background:#09090b;min-width:320px;overscroll-behavior-y:contain}body{margin:0;min-width:320px;min-height:100dvh;background:#09090b;-webkit-tap-highlight-color:transparent}button,input,select,textarea{font:inherit}button{touch-action:manipulation;cursor:pointer}button:focus-visible{outline:2px solid #a78bfa;outline-offset:2px}input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;outline-offset:0}:root[data-theme="dark"] input[type=date],:root[data-theme="dark"] input[type=datetime-local],:root[data-theme="dark"] input[type=month],:root[data-theme="dark"] input[type=time]{color-scheme:dark}input[type=checkbox]{accent-color:#8b5cf6}.safe-bottom{padding-bottom:calc(6rem + env(safe-area-inset-bottom))}.bottom-nav{padding-bottom:env(safe-area-inset-bottom)}.sheet-backdrop{background:rgba(0,0,0,.68);backdrop-filter:blur(6px)}.sheet{max-height:94dvh;overflow:auto;border-radius:1.5rem;padding-bottom:calc(1rem + env(safe-area-inset-bottom));overscroll-behavior:contain}.num{font-variant-numeric:tabular-nums}.scrollbar-hide{scrollbar-width:none}.scrollbar-hide::-webkit-scrollbar{display:none}::selection{background:#6d28d9;color:white}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#3f3f46;border-radius:99px}@media(min-width:700px){.sheet{border-radius:1.5rem;max-height:90vh;padding-bottom:1rem}.safe-bottom{padding-bottom:2rem}}
+:root{font-family:Inter,Roboto,"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;color-scheme:dark;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;background:#09090b;color:#f5f5f5;accent-color:#8b5cf6}*{box-sizing:border-box}html{background:#09090b;min-width:320px;overscroll-behavior-y:auto}body{margin:0;min-width:320px;min-height:100dvh;background:#09090b;-webkit-tap-highlight-color:transparent}button,input,select,textarea{font:inherit}button{touch-action:manipulation;cursor:pointer}button:focus-visible{outline:2px solid #a78bfa;outline-offset:2px}input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;outline-offset:0}:root[data-theme="dark"] input[type=date],:root[data-theme="dark"] input[type=datetime-local],:root[data-theme="dark"] input[type=month],:root[data-theme="dark"] input[type=time]{color-scheme:dark}input[type=checkbox]{accent-color:#8b5cf6}.safe-bottom{padding-bottom:calc(6rem + env(safe-area-inset-bottom))}.bottom-nav{padding-bottom:env(safe-area-inset-bottom)}.sheet-backdrop{background:rgba(0,0,0,.68);backdrop-filter:blur(6px)}.sheet{max-height:94dvh;overflow:auto;border-radius:1.5rem;padding-bottom:calc(1rem + env(safe-area-inset-bottom));overscroll-behavior:contain}.num{font-variant-numeric:tabular-nums}.scrollbar-hide{scrollbar-width:none}.scrollbar-hide::-webkit-scrollbar{display:none}::selection{background:#6d28d9;color:white}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#3f3f46;border-radius:99px}@media(min-width:700px){.sheet{border-radius:1.5rem;max-height:90vh;padding-bottom:1rem}.safe-bottom{padding-bottom:2rem}}
 
 /* User-selectable display density. Keep touch targets accessible in both modes. */
 .density-compact main{padding-top:.65rem}.density-compact main section{scroll-margin-top:5rem}.density-compact .bottom-nav button{min-height:3.25rem}.density-compact .bottom-nav button span{height:1.75rem}.density-compact input:not([type=checkbox]):not([type=file]),.density-compact select,.density-compact textarea{padding-top:.65rem;padding-bottom:.65rem}.density-compact .sheet>div:last-child{padding-top:.8rem}.density-compact .sheet .space-y-4>:not([hidden])~:not([hidden]){margin-top:.75rem}.density-compact .safe-bottom{padding-bottom:calc(5.25rem + env(safe-area-inset-bottom))}.density-comfortable .safe-bottom{padding-bottom:calc(6rem + env(safe-area-inset-bottom))}
@@ -1786,3 +1786,522 @@ html[data-theme="dark"] .app-loading{color-scheme:dark;}
 html[data-theme="light"] .app-loading{color-scheme:light;}
 .app-loading{transition:background-color .18s ease,color .18s ease;}
 @media(prefers-reduced-motion:reduce){.app-loading{transition:none}}
+
+
+/* Dashboard activity tabs use semantic accents in both selectable themes. */
+.dashboard-dues-tab{color:#b91c1c}
+.dashboard-recent-tab{color:#047857}
+:root[data-theme="dark"] .dashboard-dues-tab{color:#fca5a5}
+:root[data-theme="dark"] .dashboard-recent-tab{color:#6ee7b7}
+
+
+/* Dashboard theme audit: explicitly map every dashboard surface and text role
+   to the active theme. This prevents dark neutral utilities from leaking into
+   light mode while keeping the established dark palette unchanged. */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="light"] html,
+:root[data-theme="light"] body { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+:root[data-theme="light"] main .overview-slide,
+:root[data-theme="light"] main .dashboard-activity-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+:root[data-theme="light"] main .overview-slide .text-neutral-300,
+:root[data-theme="light"] main .dashboard-activity-card .text-neutral-300 {
+  color: #334155 !important;
+}
+:root[data-theme="light"] main .overview-slide .text-neutral-400,
+:root[data-theme="light"] main .dashboard-activity-card .text-neutral-400,
+:root[data-theme="light"] main .overview-slide .text-neutral-500,
+:root[data-theme="light"] main .dashboard-activity-card .text-neutral-500 {
+  color: #64748b !important;
+}
+:root[data-theme="light"] main .overview-slide .bg-neutral-800\/60 {
+  background-color: #f1f5f9 !important;
+}
+:root[data-theme="light"] main .overview-slide .bg-neutral-700 {
+  background-color: #e2e8f0 !important;
+}
+:root[data-theme="light"] main .dashboard-activity-card .border-neutral-800,
+:root[data-theme="light"] main .dashboard-activity-card .border-neutral-800\/80,
+:root[data-theme="light"] main .dashboard-activity-card .divide-neutral-800\/80 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+:root[data-theme="light"] main .dashboard-activity-card .bg-neutral-900 {
+  background-color: #ffffff !important;
+}
+:root[data-theme="light"] main .dashboard-activity-card .hover\:bg-neutral-800\/60:hover {
+  background-color: #f8fafc !important;
+}
+:root[data-theme="light"] main .dashboard-dues-tab[aria-selected="true"] {
+  background-color: #fef2f2 !important;
+  border-color: #fca5a5 !important;
+  color: #b91c1c !important;
+}
+:root[data-theme="light"] main .dashboard-recent-tab[aria-selected="true"] {
+  background-color: #ecfdf5 !important;
+  border-color: #6ee7b7 !important;
+  color: #047857 !important;
+}
+:root[data-theme="dark"] main .dashboard-dues-tab[aria-selected="true"] {
+  background-color: rgba(239, 68, 68, .12) !important;
+  border-color: rgba(248, 113, 113, .5) !important;
+  color: #fca5a5 !important;
+}
+:root[data-theme="dark"] main .dashboard-recent-tab[aria-selected="true"] {
+  background-color: rgba(16, 185, 129, .12) !important;
+  border-color: rgba(52, 211, 153, .5) !important;
+  color: #6ee7b7 !important;
+}
+
+
+/* Selected Dashboard activity pills use solid category colours with white text. */
+.dashboard-dues-tab[aria-selected="true"] { color: #fff !important; }
+.dashboard-recent-tab[aria-selected="true"] { color: #fff !important; }
+
+
+/* Bill Payments contrast: semantic metric accents remain readable in both themes. */
+.payment-metric-label-amber { color: #fcd34d; }
+.payment-metric-label-green { color: #6ee7b7; }
+.payment-allocation-note { background-color: rgba(120,53,15,.35); color: #fde68a; }
+.payment-restore-button { color: #c4b5fd; }
+:root[data-theme="light"] .payment-metric-label-amber { color: #92400e !important; }
+:root[data-theme="light"] .payment-metric-label-green { color: #047857 !important; }
+:root[data-theme="light"] .payment-allocation-note {
+  background-color: #fffbeb !important;
+  color: #78350f !important;
+  border: 1px solid #fde68a;
+}
+:root[data-theme="light"] .payment-restore-button {
+  color: #6d28d9 !important;
+  border-color: #c4b5fd !important;
+}
+:root[data-theme="light"] .payment-restore-button:hover {
+  background-color: #f5f3ff !important;
+}
+
+/* Final Dashboard activity refinements: solid selected pills and independently scrollable lists. */
+:root[data-theme="light"] main .dashboard-activity-card .dashboard-dues-tab[aria-selected="true"],
+:root[data-theme="dark"] main .dashboard-activity-card .dashboard-dues-tab[aria-selected="true"] {
+  background-color: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+:root[data-theme="light"] main .dashboard-activity-card .dashboard-recent-tab[aria-selected="true"],
+:root[data-theme="dark"] main .dashboard-activity-card .dashboard-recent-tab[aria-selected="true"] {
+  background-color: #059669 !important;
+  border-color: #059669 !important;
+  color: #ffffff !important;
+}
+.dashboard-activity-list {
+  max-height: min(340px, 42vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+
+/* Dashboard activity segmented control: one shared outline around both tabs. */
+.dashboard-activity-tabs {
+  border: 1px solid #e2e8f0;
+}
+:root[data-theme="light"] .dashboard-activity-tabs {
+  border-color: #e2e8f0 !important;
+}
+:root[data-theme="dark"] .dashboard-activity-tabs {
+  border-color: #3f3f46 !important;
+}
+/* Keep transaction separators consistent, including the final HDFC row edge. */
+:root[data-theme="light"] main .dashboard-activity-card .txn-row {
+  border-bottom-color: #e2e8f0 !important;
+}
+:root[data-theme="dark"] main .dashboard-activity-card .txn-row {
+  border-bottom-color: #303036 !important;
+}
+:root[data-theme="light"] main .dashboard-activity-card .dashboard-activity-list > button + button {
+  border-top: 1px solid #e2e8f0;
+}
+:root[data-theme="dark"] main .dashboard-activity-card .dashboard-activity-list > button + button {
+  border-top: 1px solid #303036;
+}
+
+
+/* Dashboard activity: one visibly outlined segmented control and theme-correct separators. */
+.dashboard-activity-card .dashboard-activity-tabs {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 4px;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 16px;
+  background: transparent;
+}
+:root[data-theme="light"] main .dashboard-activity-card .dashboard-activity-tabs {
+  border-color: #cbd5e1 !important;
+}
+:root[data-theme="dark"] main .dashboard-activity-card .dashboard-activity-tabs {
+  border-color: #52525b !important;
+}
+:root[data-theme="light"] main .dashboard-activity-card .dashboard-activity-tabs .dashboard-dues-tab[aria-selected="true"] {
+  background: #dc2626 !important;
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+:root[data-theme="light"] main .dashboard-activity-card .dashboard-activity-tabs .dashboard-recent-tab[aria-selected="true"] {
+  background: #059669 !important;
+  background-color: #059669 !important;
+  color: #ffffff !important;
+}
+:root[data-theme="dark"] main .dashboard-activity-card .dashboard-activity-tabs .dashboard-dues-tab[aria-selected="true"] {
+  background: #dc2626 !important;
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+:root[data-theme="dark"] main .dashboard-activity-card .dashboard-activity-tabs .dashboard-recent-tab[aria-selected="true"] {
+  background: #059669 !important;
+  background-color: #059669 !important;
+  color: #ffffff !important;
+}
+/* Dues rows: replace Tailwind divide colour with a single explicit semantic separator. */
+.dashboard-activity-card .dashboard-dues-list > button + button {
+  border-top: 1px solid #e2e8f0 !important;
+}
+:root[data-theme="light"] main .dashboard-activity-card .dashboard-dues-list > button + button {
+  border-top-color: #e2e8f0 !important;
+}
+:root[data-theme="dark"] main .dashboard-activity-card .dashboard-dues-list > button + button {
+  border-top-color: #303036 !important;
+}
+
+/* Card details: compact, theme-aware action toolbar and cycle summary. */
+.card-detail-action-track{
+  display:flex;align-items:stretch;gap:.5rem;overflow-x:auto;overscroll-behavior-x:contain;
+  padding:.125rem .0625rem .35rem;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.card-detail-action-track::-webkit-scrollbar{display:none}
+.card-detail-action{
+  display:flex;flex:1 0 4.75rem;min-width:4.75rem;min-height:4.35rem;flex-direction:column;
+  align-items:center;justify-content:center;gap:.4rem;padding:.55rem .45rem;
+  border:1px solid #3f3f46;border-radius:1rem;background:#18181b;color:#e4e4e7;
+  text-decoration:none;white-space:nowrap;transition:background-color .16s,border-color .16s,transform .16s;
+}
+.card-detail-action svg{color:#c4b5fd;stroke-width:2.1}
+.card-detail-action span{font-size:.68rem;font-weight:600;line-height:1.1;letter-spacing:.01em}
+.card-detail-action:hover{background:#27272a;border-color:#71717a}
+.card-detail-action:active{transform:scale(.97);background:#312e3a}
+.card-detail-action:focus-visible,.card-detail-cycle-select:focus-visible,.card-detail-search-close:focus-visible{outline:2px solid #a78bfa;outline-offset:2px}
+.card-detail-search-expanded{
+  display:flex;align-items:center;gap:.7rem;min-height:3.65rem;padding:.25rem .9rem;
+  border:1px solid #52525b;border-radius:1rem;background:#18181b;color:#d4d4d8;
+}
+.card-detail-search-expanded>svg{color:#a1a1aa}
+.card-detail-search-input{width:100%;min-width:0;border:0!important;outline:0!important;background:transparent!important;color:#f4f4f5!important;font-size:.9rem;box-shadow:none!important}
+.card-detail-search-input::placeholder{color:#71717a}
+.card-detail-search-close{display:flex;flex:none;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:.7rem;color:#a1a1aa}
+.card-detail-search-close:hover{background:#27272a;color:#fafafa}
+.card-detail-cycle-row{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:.6rem;align-items:stretch}
+.card-detail-cycle-select,.card-detail-cycle-expenses{
+  position:relative;display:flex;min-width:0;min-height:5.2rem;flex-direction:column;align-items:flex-start;justify-content:center;
+  gap:.2rem;padding:.75rem .85rem;border:1px solid #3f3f46;border-radius:1rem;background:#18181b;color:#f4f4f5;text-align:left;
+}
+.card-detail-cycle-select{padding-right:2.25rem;cursor:pointer}
+.card-detail-cycle-select:hover{border-color:#8b5cf6;background:#202024}
+.card-detail-metric-label{color:#a1a1aa;font-size:.72rem;line-height:1.2}
+.card-detail-cycle-name{font-size:.95rem;font-weight:650;line-height:1.3}
+.card-detail-cycle-dates{color:#a1a1aa;font-size:.72rem;line-height:1.3;white-space:nowrap}
+.card-detail-cycle-chevron{position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#a1a1aa}
+.card-detail-cycle-amount{font-size:1.12rem;font-weight:750;line-height:1.35;font-variant-numeric:tabular-nums;white-space:nowrap}
+.card-detail-statement-tools{padding:.85rem;border:1px solid #3f3f46;border-radius:1rem;background:#18181b}
+:root[data-theme="light"] .card-detail-action{border-color:#e2e8f0;background:#fff;color:#334155;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+:root[data-theme="light"] .card-detail-action svg{color:#6d28d9}
+:root[data-theme="light"] .card-detail-action:hover{border-color:#c4b5fd;background:#f5f3ff}
+:root[data-theme="light"] .card-detail-action:active{background:#ede9fe}
+:root[data-theme="light"] .card-detail-search-expanded{border-color:#cbd5e1;background:#fff;color:#334155}
+:root[data-theme="light"] .card-detail-search-expanded>svg{color:#64748b}
+:root[data-theme="light"] .card-detail-search-input{color:#0f172a!important}
+:root[data-theme="light"] .card-detail-search-input::placeholder{color:#94a3b8}
+:root[data-theme="light"] .card-detail-search-close{color:#64748b}
+:root[data-theme="light"] .card-detail-search-close:hover{background:#f1f5f9;color:#0f172a}
+:root[data-theme="light"] .card-detail-cycle-select,
+:root[data-theme="light"] .card-detail-cycle-expenses{border-color:#e2e8f0;background:#fff;color:#0f172a;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+:root[data-theme="light"] .card-detail-cycle-select:hover{border-color:#a78bfa;background:#faf5ff}
+:root[data-theme="light"] .card-detail-metric-label,
+:root[data-theme="light"] .card-detail-cycle-dates{color:#64748b}
+:root[data-theme="light"] .card-detail-cycle-chevron{color:#64748b}
+:root[data-theme="light"] .card-detail-statement-tools{border-color:#e2e8f0;background:#fff}
+@media(max-width:360px){.card-detail-cycle-row{grid-template-columns:minmax(0,1fr) minmax(0,.85fr);gap:.45rem}.card-detail-cycle-select,.card-detail-cycle-expenses{padding:.65rem .7rem}.card-detail-cycle-select{padding-right:1.9rem}.card-detail-cycle-amount{font-size:1rem}.card-detail-cycle-dates{font-size:.66rem}}
+@media(prefers-reduced-motion:reduce){.card-detail-action{transition:none}}
+
+/* Card details: compact single-row toolbar (Search, Billing cycle, More). */
+.card-detail-toolbar-track{
+  display:flex;align-items:center;gap:.5rem;width:100%;min-width:0;
+}
+.card-detail-icon-button{
+  display:flex;flex:0 0 2.875rem;width:2.875rem;height:2.875rem;align-items:center;justify-content:center;
+  border:1px solid #3f3f46;border-radius:.9rem;background:#18181b;color:#e4e4e7;
+  transition:background-color .16s,border-color .16s,transform .16s;
+}
+.card-detail-icon-button svg{color:#c4b5fd;stroke-width:2.1}
+.card-detail-icon-button:hover{background:#27272a;border-color:#71717a}
+.card-detail-icon-button:active{transform:scale(.96);background:#312e3a}
+.card-detail-cycle-compact{
+  display:flex;flex:1 1 auto;min-width:0;height:2.875rem;flex-direction:column;justify-content:center;gap:.12rem;
+  padding:.35rem .7rem;border:1px solid #3f3f46;border-radius:.9rem;background:#18181b;color:#f4f4f5;text-align:left;
+  transition:background-color .16s,border-color .16s;
+}
+.card-detail-cycle-compact:hover{background:#202024;border-color:#8b5cf6}
+.card-detail-cycle-compact-label{color:#a1a1aa;font-size:.62rem;line-height:1.05}
+.card-detail-cycle-compact-value{display:flex;min-width:0;align-items:center;justify-content:space-between;gap:.35rem;font-size:.76rem;font-weight:650;line-height:1.2;white-space:nowrap}
+.card-detail-cycle-compact-value>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.card-detail-cycle-compact-value svg{flex:none;color:#a1a1aa}
+.card-detail-toolbar-track button:focus-visible,.card-detail-cycle-compact:focus-visible,.card-detail-more-action:focus-visible{outline:2px solid #a78bfa;outline-offset:2px}
+.card-detail-search-expanded{
+  display:flex;align-items:center;gap:.7rem;min-height:2.875rem;width:100%;padding:.25rem .8rem;
+  border:1px solid #52525b;border-radius:.9rem;background:#18181b;color:#d4d4d8;
+}
+.card-detail-search-expanded>svg{color:#a1a1aa}
+.card-detail-search-input{width:100%;min-width:0;border:0!important;outline:0!important;background:transparent!important;color:#f4f4f5!important;font-size:.9rem;box-shadow:none!important}
+.card-detail-search-input::placeholder{color:#71717a}
+.card-detail-search-close{display:flex;flex:none;align-items:center;justify-content:center;width:2.15rem;height:2.15rem;border-radius:.7rem;color:#a1a1aa}
+.card-detail-search-close:hover{background:#27272a;color:#fafafa}
+.card-detail-more-list{display:flex;flex-direction:column;gap:.35rem}
+.card-detail-more-action{
+  display:flex;min-height:3.15rem;width:100%;align-items:center;gap:.85rem;padding:.75rem .8rem;
+  border:1px solid transparent;border-radius:.9rem;background:#18181b;color:#e4e4e7;text-align:left;text-decoration:none;
+  font-size:.9rem;font-weight:550;transition:background-color .15s,border-color .15s;
+}
+.card-detail-more-action svg{flex:none;color:#c4b5fd}
+.card-detail-more-action:hover:not(:disabled){border-color:#52525b;background:#27272a}
+.card-detail-more-action:active:not(:disabled){background:#312e3a}
+.card-detail-more-action:disabled{cursor:not-allowed;opacity:.45}
+.card-detail-more-divider{height:1px;margin:.3rem .2rem;background:#3f3f46}
+.card-detail-more-download{border-color:rgba(139,92,246,.35);background:rgba(139,92,246,.1);color:#ddd6fe}
+.card-detail-more-download:hover:not(:disabled){border-color:#8b5cf6;background:rgba(139,92,246,.17)}
+:root[data-theme="light"] .card-detail-icon-button,
+:root[data-theme="light"] .card-detail-cycle-compact{border-color:#e2e8f0;background:#fff;color:#0f172a;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+:root[data-theme="light"] .card-detail-icon-button svg{color:#6d28d9}
+:root[data-theme="light"] .card-detail-icon-button:hover,
+:root[data-theme="light"] .card-detail-cycle-compact:hover{border-color:#c4b5fd;background:#f5f3ff}
+:root[data-theme="light"] .card-detail-cycle-compact-label{color:#64748b}
+:root[data-theme="light"] .card-detail-cycle-compact-value svg{color:#64748b}
+:root[data-theme="light"] .card-detail-search-expanded{border-color:#cbd5e1;background:#fff;color:#334155}
+:root[data-theme="light"] .card-detail-search-expanded>svg{color:#64748b}
+:root[data-theme="light"] .card-detail-search-input{color:#0f172a!important}
+:root[data-theme="light"] .card-detail-search-input::placeholder{color:#94a3b8}
+:root[data-theme="light"] .card-detail-search-close{color:#64748b}
+:root[data-theme="light"] .card-detail-search-close:hover{background:#f1f5f9;color:#0f172a}
+:root[data-theme="light"] .card-detail-more-action{background:#f8fafc;color:#1e293b}
+:root[data-theme="light"] .card-detail-more-action svg{color:#6d28d9}
+:root[data-theme="light"] .card-detail-more-action:hover:not(:disabled){border-color:#cbd5e1;background:#f1f5f9}
+:root[data-theme="light"] .card-detail-more-divider{background:#e2e8f0}
+:root[data-theme="light"] .card-detail-more-download{border-color:#ddd6fe;background:#f5f3ff;color:#5b21b6}
+:root[data-theme="light"] .card-detail-more-download:hover:not(:disabled){border-color:#a78bfa;background:#ede9fe}
+@media(max-width:350px){.card-detail-toolbar-track{gap:.4rem}.card-detail-icon-button{flex-basis:2.65rem;width:2.65rem;height:2.75rem}.card-detail-cycle-compact{height:2.75rem;padding-inline:.55rem}.card-detail-cycle-compact-value{font-size:.7rem}}
+@media(prefers-reduced-motion:reduce){.card-detail-icon-button,.card-detail-cycle-compact,.card-detail-more-action{transition:none}}
+
+
+/* Card details toolbar refinement: keep the page geometry identical when search expands. */
+.card-detail-toolbar{
+  height:2.875rem;
+  min-height:2.875rem;
+  box-sizing:border-box;
+}
+.card-detail-toolbar-track,
+.card-detail-search-expanded{
+  height:2.875rem;
+  min-height:2.875rem;
+  max-height:2.875rem;
+  box-sizing:border-box;
+}
+.card-detail-toolbar-track{gap:.5rem;}
+.card-detail-cycle-compact{height:2.875rem;min-height:2.875rem;box-sizing:border-box;}
+.card-detail-cycle-compact-value{height:1.15rem;align-items:center;line-height:1.15rem;}
+.card-detail-cycle-compact-value>svg{
+  display:block;
+  flex:0 0 auto;
+  align-self:center;
+  margin-block:auto;
+}
+.card-detail-download-button svg{stroke-width:2.1;}
+:root[data-theme="light"] .card-detail-download-button{
+  border-color:#c4b5fd;
+  background:#f5f3ff;
+  color:#6d28d9;
+}
+:root[data-theme="light"] .card-detail-download-button svg{color:#6d28d9;}
+:root[data-theme="dark"] .card-detail-download-button{
+  border-color:rgba(139,92,246,.5);
+  background:rgba(139,92,246,.12);
+  color:#c4b5fd;
+}
+:root[data-theme="dark"] .card-detail-download-button svg{color:#c4b5fd;}
+@media(max-width:350px){
+  .card-detail-toolbar{height:2.75rem;min-height:2.75rem;}
+  .card-detail-toolbar-track,.card-detail-search-expanded{height:2.75rem;min-height:2.75rem;max-height:2.75rem;}
+  .card-detail-icon-button{height:2.75rem;}
+  .card-detail-cycle-compact{height:2.75rem;min-height:2.75rem;}
+}
+
+
+/* Card Details #25-2: keep the compact toolbar pinned below the app header,
+   and pin each transaction-month heading beneath that toolbar. The measured
+   header height keeps both offsets correct across mobile and desktop layouts. */
+:root { --card-detail-toolbar-height: 2.875rem; }
+.card-detail-page { position: relative; }
+.card-detail-page .card-detail-toolbar {
+  position: sticky;
+  top: var(--app-header-height, 4.25rem);
+  z-index: 45;
+  background: #09090b;
+  isolation: isolate;
+}
+.card-detail-page .transaction-month-sticky {
+  top: calc(var(--app-header-height, 4.25rem) + var(--card-detail-toolbar-height));
+  z-index: 30 !important;
+  background: #09090b !important;
+  isolation: isolate;
+}
+:root[data-theme="light"] .card-detail-page .card-detail-toolbar { background: #f8fafc; }
+:root[data-theme="light"] .card-detail-page .transaction-month-sticky {
+  background: #f8fafc !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+:root[data-theme="dark"] .card-detail-page .card-detail-toolbar { background: #09090b; }
+:root[data-theme="dark"] .card-detail-page .transaction-month-sticky {
+  background: #09090b !important;
+  border-bottom-color: #27272a !important;
+}
+@media (max-width: 350px) {
+  :root { --card-detail-toolbar-height: 2.75rem; }
+}
+
+/* Card Details #25-3: keep the sticky toolbar fully clear of the app header
+   while scrolling, and align the cycle chevron to the whole control. */
+.card-detail-page .card-detail-toolbar {
+  top: calc(var(--app-header-height, 4.25rem) + 4px) !important;
+  z-index: 50 !important;
+  margin-top: 0;
+}
+.card-detail-page .card-detail-cycle-compact {
+  position: relative;
+  padding-right: 2.35rem;
+}
+.card-detail-page .card-detail-cycle-compact-value {
+  display: block;
+  width: 100%;
+  padding-right: 0;
+}
+.card-detail-page .card-detail-cycle-compact-value > span {
+  display: block;
+  width: 100%;
+}
+.card-detail-page .card-detail-cycle-compact-value > svg {
+  position: absolute;
+  top: 50%;
+  right: .8rem;
+  transform: translateY(-50%);
+  margin: 0;
+}
+.card-detail-page .transaction-month-sticky {
+  top: calc(var(--app-header-height, 4.25rem) + 4px + var(--card-detail-toolbar-height));
+  z-index: 40 !important;
+}
+@media (max-width: 350px) {
+  .card-detail-page .card-detail-cycle-compact { padding-right: 2rem; }
+  .card-detail-page .card-detail-cycle-compact-value > svg { right: .6rem; }
+}
+
+/* Card Details #25-4: preserve the header-to-toolbar breathing room while
+   sticky, and mask the gap so scrolling transaction content cannot bleed
+   through it. Keep all toolbar borders visually consistent in both themes. */
+.card-detail-page .card-detail-toolbar {
+  top: calc(var(--app-header-height, 4.25rem) + 8px) !important;
+  position: sticky;
+  z-index: 45 !important;
+  isolation: isolate;
+}
+.card-detail-page .card-detail-toolbar::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  inset-inline: 0;
+  height: 8px;
+  background: #09090b;
+  pointer-events: none;
+}
+.card-detail-page .card-detail-toolbar-track > button,
+.card-detail-page .card-detail-toolbar-track > .card-detail-cycle-compact {
+  border-color: #3f3f46 !important;
+}
+.card-detail-page .card-detail-download-button {
+  border-color: #3f3f46 !important;
+  background: rgba(139, 92, 246, .12);
+}
+.card-detail-page .transaction-month-sticky {
+  top: calc(var(--app-header-height, 4.25rem) + 8px + var(--card-detail-toolbar-height)) !important;
+  z-index: 30 !important;
+}
+:root[data-theme="light"] .card-detail-page .card-detail-toolbar::before {
+  background: #f8fafc;
+}
+:root[data-theme="light"] .card-detail-page .card-detail-toolbar-track > button,
+:root[data-theme="light"] .card-detail-page .card-detail-toolbar-track > .card-detail-cycle-compact {
+  border-color: #e2e8f0 !important;
+}
+:root[data-theme="light"] .card-detail-page .card-detail-download-button {
+  border-color: #e2e8f0 !important;
+  background: #f5f3ff;
+}
+
+
+/* Card Details #25-5: mirror the Transactions tab sticky hierarchy while
+   retaining the Card Details toolbar's own controls and proportions.
+   The toolbar uses the same full-bleed padded strip as transaction search. */
+:root {
+  --card-detail-toolbar-height: 3.875rem;
+}
+.card-detail-page .card-detail-toolbar {
+  position: sticky !important;
+  top: var(--app-header-height, 4.25rem) !important;
+  z-index: 40 !important;
+  box-sizing: border-box;
+  min-height: var(--card-detail-toolbar-height);
+  margin-top: -1rem;
+  margin-bottom: 1rem;
+  padding: .5rem 1rem;
+  background: #09090b !important;
+  border-bottom: 1px solid #27272a !important;
+  isolation: isolate;
+  background-clip: padding-box;
+}
+.card-detail-page .transaction-month-sticky {
+  position: sticky;
+  top: calc(var(--app-header-height, 4.25rem) + var(--card-detail-toolbar-height)) !important;
+  z-index: 30 !important;
+  background: #09090b !important;
+  border-bottom-color: #27272a !important;
+  isolation: isolate;
+}
+:root[data-theme="light"] .card-detail-page .card-detail-toolbar {
+  background: #f8fafc !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+:root[data-theme="light"] .card-detail-page .transaction-month-sticky {
+  background: #f8fafc !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+:root[data-theme="dark"] .card-detail-page .card-detail-toolbar {
+  background: #09090b !important;
+  border-bottom-color: #27272a !important;
+}
+:root[data-theme="dark"] .card-detail-page .transaction-month-sticky {
+  background: #09090b !important;
+  border-bottom-color: #27272a !important;
+}
+@media (max-width: 350px) {
+  :root { --card-detail-toolbar-height: 3.75rem; }
+}
